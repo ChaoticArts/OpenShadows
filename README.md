@@ -9,6 +9,10 @@ This project tries to reimplement the executables of **Realms of Arkania III: Sh
 * getting more and more into graphics and game programming
 
 
+## Technology
+The game will be developed using **.NET Core** in combination with [Veldrid](https://www.github.com/mellinoe/Veldrid). This tech-stack ensures good platform independence while simultaneously granting rapid development speed, suitable performance and access to modern graphics.
+
+
 ## Work in progress / roadmap
 This project is in the *very* early stages. There is still a long way to go before there's anything playable. The initial focus is on understanding the data formats and converting them to data that can be used by modern systems (images, sounds, music, ...).
 
