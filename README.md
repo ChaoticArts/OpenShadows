@@ -10,7 +10,7 @@ This project tries to reimplement the executables of **Realms of Arkania III: Sh
 
 
 ## Work in progress / roadmap
-This project is in the *very* early stages. There is still a long way to go before there's anything playable. The initial focus is on understanding the data formats.
+This project is in the *very* early stages. There is still a long way to go before there's anything playable. The initial focus is on understanding the data formats and converting them to data that can be used by modern systems (images, sounds, music, ...).
 
 ### Understand, identify and parse data files
 * [ ] `.3DM` 3d map
