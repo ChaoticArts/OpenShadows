@@ -17,7 +17,7 @@ The game will be developed using **.NET Core** in combination with [Veldrid](htt
 This project is in the *very* early stages. There is still a long way to go before there's anything playable. The initial focus is on understanding the data formats and converting them to data that can be used by modern systems (images, sounds, music, ...).
 
 ### Understand, identify and parse data files
-* [ ] `.ALF` Game archive files
+* [x] `.ALF` Game archive files
 * [ ] `.3DM` 3d map
 * [ ] `.DSC` 3d map animation data
 * [ ] `.NEI` 3d map portal data (???)
@@ -25,7 +25,7 @@ This project is in the *very* early stages. There is still a long way to go befo
 * [ ] `.PPD` 3d map sky definition (???)
 * [ ] `.TAB` 3d map shading information (???)
 * [ ] `.PIX` 3d map texture
-* [ ] `.AIF` image
+* [x] `.AIF` image
 * [ ] `.NVF` image set
 * [ ] `.ACE` animated sprites
 * [ ] `.BOB` animated screens
