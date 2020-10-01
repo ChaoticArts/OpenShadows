@@ -123,7 +123,7 @@ namespace OpenShadows.Workbench.Screens
 			}
 
 			CurrentScreen?.Update(1.0f / 60.0f);
-			CurrentScreen?.Render(Window);
+			CurrentScreen?.Render(Window, Gd, ImGuiRenderer);
 
 			ImGui.PopStyleVar();
 		}

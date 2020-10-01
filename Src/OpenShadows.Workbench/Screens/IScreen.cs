@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Veldrid;
 using Veldrid.Sdl2;
 
 namespace OpenShadows.Workbench.Screens
@@ -9,7 +10,7 @@ namespace OpenShadows.Workbench.Screens
 	{
 		void Update(float dt);
 
-		void Render(Sdl2Window window);
+		void Render(Sdl2Window window, GraphicsDevice gd, ImGuiRenderer imGuiRenderer);
 
 		string Title { get; }
 	}

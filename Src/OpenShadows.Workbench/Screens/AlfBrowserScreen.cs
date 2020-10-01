@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using ImGuiNET;
+using OpenShadows.Data;
+using OpenShadows.Data.Graphic;
 using OpenShadows.FileFormats;
+using OpenShadows.FileFormats.AIF;
 using OpenShadows.FileFormats.ALF;
+using Veldrid;
 using Veldrid.Sdl2;
 
 namespace OpenShadows.Workbench.Screens
@@ -19,15 +25,24 @@ namespace OpenShadows.Workbench.Screens
 
 		private string ReadableAlfPath = "DATA\\RIVA.ALF";
 
+		private string SearchString = "aif";
+
 		private int SelectedEntry = -1;
+
+		private ImGuiRenderer ImGuiRenderer;
+
+		private GraphicsDevice Gd;
 
 		public void Update(float dt)
 		{
 			// explicitly do nothing
 		}
 
-		public void Render(Sdl2Window window)
+		public void Render(Sdl2Window window, GraphicsDevice gd, ImGuiRenderer imGuiRenderer)
 		{
+			Gd = gd;
+			ImGuiRenderer = imGuiRenderer;
+
 			Vector2 pos = Vector2.One;
 			pos.Y = 18;
 			ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
@@ -64,13 +79,16 @@ namespace OpenShadows.Workbench.Screens
 					}
 				}
 				ImGui.End();
-
 			}
 		}
 
 		private void DrawContentList()
 		{
 			ImGui.Separator();
+
+			ImGui.PushItemWidth(-1);
+			ImGui.InputText("##search_string", ref SearchString, 1000);
+			ImGui.PopItemWidth();
 
 			ImGui.BeginChild("##file_list");
 
@@ -83,12 +101,14 @@ namespace OpenShadows.Workbench.Screens
 
 			foreach (AlfModule module in Alf.Modules)
 			{
-				if (!module.Entries.Any())
+				List<AlfEntry> filteredModules = module.Entries.Where(x => SearchString.Length == 0 || x.Name.Contains(SearchString, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+				if (filteredModules.Count == 0)
 				{
 					continue;
 				}
 
-				foreach (AlfEntry entry in module.Entries)
+				foreach (AlfEntry entry in filteredModules)
 				{
 					if (ImGui.Selectable(entry.Index.ToString(), entry.Index == SelectedEntry, ImGuiSelectableFlags.SpanAllColumns))
 					{
@@ -128,7 +148,85 @@ namespace OpenShadows.Workbench.Screens
 				ImGui.SameLine();
 				ImGui.Text($"   Type: {FormatHelper.GetFileType(entry.Name.End(3))}");
 
+				if (ImGui.Button("Extract"))
+				{
+					const string path = @"Y:\Projekte\Reverse Engineering\NLT\OpenShadows";
+					using Stream s = entry.Open();
+					using FileStream fs = new FileStream(Path.Combine(path, entry.Name), FileMode.Create);
+					s.CopyTo(fs);
+				}
+
+				if (string.Equals(entry.Name.End(3), "AIF", StringComparison.OrdinalIgnoreCase))
+				{
+					DrawImageViewer();
+				}
+
 				ImGui.End();
+			}
+		}
+
+		private Texture CurrentImage;
+
+		private bool HasImage;
+
+		private uint ZoomFactor = 1;
+
+		private void DrawImageViewer()
+		{
+			ImGui.Text("I'm an viewable image");
+
+			if (!HasImage && ImGui.Button("View me"))
+			{
+				using Stream s = Alf.Entries[SelectedEntry].Open();
+
+				ImageData temp = AifExtractor.ExtractImage(s);
+
+				Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
+				{
+					Height      = (uint)temp.Height,
+					Width       = (uint)temp.Width,
+					Format      = PixelFormat.R8_G8_B8_A8_UNorm_SRgb,
+					Type        = TextureType.Texture2D,
+					Usage       = TextureUsage.Sampled,
+					MipLevels   = 1,
+					Depth       = 1,
+					ArrayLayers = 1
+				});
+
+				GCHandle pinnedArray = GCHandle.Alloc(temp.PixelData, GCHandleType.Pinned);
+				IntPtr   pointer     = pinnedArray.AddrOfPinnedObject();
+
+				Gd.UpdateTexture(img, pointer, (uint)temp.PixelData.Length, 0, 0, 0, (uint)temp.Width, (uint)temp.Height, 1, 0, 0);
+
+				pinnedArray.Free();
+
+				CurrentImage = img;
+				HasImage     = true;
+				ZoomFactor   = 1;
+			}
+
+			if (HasImage && CurrentImage != null)
+			{
+				if (ImGui.Button("Close me"))
+				{
+					HasImage = false;
+				}
+
+				ImGui.SameLine();
+
+				if (ImGui.Button("+"))
+				{
+					ZoomFactor++;
+				}
+
+				ImGui.SameLine();
+
+				if (ImGui.Button("-"))
+				{
+					ZoomFactor = ZoomFactor == 1 ? 1 : ZoomFactor - 1;
+				}
+
+				ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(Gd.ResourceFactory, CurrentImage), new Vector2(CurrentImage.Width * ZoomFactor, CurrentImage.Height * ZoomFactor));
 			}
 		}
 

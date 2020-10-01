@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace OpenShadows.FileFormats.ALF
 {
@@ -15,6 +16,8 @@ namespace OpenShadows.FileFormats.ALF
 		private readonly List<AlfModule> AlfModules = new List<AlfModule>();
 
 		internal Stream Stream => AlfStream;
+
+		private object FileLock = new object();
 
 		public long Size => AlfStream.Length;
 
@@ -67,7 +70,8 @@ namespace OpenShadows.FileFormats.ALF
 
 				file.ReadChars(6);
 
-				entry.Offset = file.ReadInt32();
+				entry.Offset = file.ReadInt32() + 0x30;
+				entry.Archive = this;
 
 				AlfEntries.Add(entry);
 			}
@@ -125,6 +129,16 @@ namespace OpenShadows.FileFormats.ALF
 					}
 				}
 			}
+		}
+
+		public void AcquireLock()
+		{
+			Monitor.Enter(FileLock);
+		}
+
+		public void ReleaseLock()
+		{
+			Monitor.Exit(FileLock);
 		}
 	}
 }
