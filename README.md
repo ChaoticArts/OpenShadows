@@ -35,7 +35,7 @@ This project is in the *very* early stages. There is still a long way to go befo
 * [ ] `.ASF` audio (raw PCM unsigned 8-bit, mono 22050 Hz) with ASF header
 * [ ] `.RAW` audio (raw PCM unsigned 8-bit, mono 22050 Hz)
 * [ ] `.HMI` audio (Human Machine Interfaces format)
-* [ ] `.LXT` text definition
+* [x] `.LXT` text definition
 * [ ] `.XDF` dialogue definition
 * [ ] `.DAT` different types of gamedata
 * [ ] `.NPC` joinable npc data
@@ -76,6 +76,7 @@ This project itself has no distinct community (yet). But there are many folks wi
 ## Acknowledgements
 Some people I like to mention (in no particular order):
 
+* Crystal
 * HenneNWH
 * Hendrik
 * Lippens die Ente
