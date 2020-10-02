@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenShadows.Workbench", "OpenShadows.Workbench\OpenShadows.Workbench.csproj", "{6DBD55F2-36F1-4759-A90B-608C4F2313B8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4CF6C217-8F1C-4A06-AA4C-E04232797F95} = {4CF6C217-8F1C-4A06-AA4C-E04232797F95}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenShadows.FileFormats", "OpenShadows.FileFormats\OpenShadows.FileFormats.csproj", "{670473AE-80B4-43B9-8755-47993679C9F0}"
 	ProjectSection(ProjectDependencies) = postProject

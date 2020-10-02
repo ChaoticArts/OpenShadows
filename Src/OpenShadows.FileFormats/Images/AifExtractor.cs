@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using OpenShadows.Data.Graphic;
 
-namespace OpenShadows.FileFormats.AIF
+namespace OpenShadows.FileFormats.Images
 {
 	public static class AifExtractor
 	{

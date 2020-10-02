@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace OpenShadows.FileFormats.ALF
+namespace OpenShadows.FileFormats.Archive
 {
 	public class AlfArchive : IDisposable
 	{

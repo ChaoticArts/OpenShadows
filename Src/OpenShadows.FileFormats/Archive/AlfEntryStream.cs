@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace OpenShadows.FileFormats.ALF
+namespace OpenShadows.FileFormats.Archive
 {
 	public class AlfEntryStream : Stream
 	{

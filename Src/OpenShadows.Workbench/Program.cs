@@ -1,13 +1,10 @@
-﻿using System;
-using System.IO;
-using OpenShadows.FileFormats.ALF;
-using OpenShadows.Workbench.Screens;
+﻿using OpenShadows.Workbench.Screens;
 
 namespace OpenShadows.Workbench
 {
 	internal static class Program
 	{
-		private static void Main(string[] args)
+		private static void Main()
 		{
 			using var ms = new MainScreen();
 			ms.Run();
