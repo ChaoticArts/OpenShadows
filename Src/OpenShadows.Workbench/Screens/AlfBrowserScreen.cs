@@ -26,7 +26,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private string ReadableAlfPath = "DATA\\RIVA.ALF";
 
-		private string SearchString = "lxt";
+		private string SearchString = "xdf";
 
 		private int SelectedEntry = -1;
 
@@ -166,6 +166,10 @@ namespace OpenShadows.Workbench.Screens
 				{
 					DrawTextViewer("lxt");
 				}
+				if (string.Equals(entry.Name.End(3), "XDF", StringComparison.Ordinal))
+				{
+					DrawTextViewer("xdf");
+				}
 
 				ImGui.End();
 			}
@@ -243,7 +247,18 @@ namespace OpenShadows.Workbench.Screens
 		{
 			using Stream s = Alf.Entries[SelectedEntry].Open();
 
+			List<Tuple<int, string>> textTuples = null;
+
 			if (string.Equals(textType, "lxt", StringComparison.OrdinalIgnoreCase))
+			{
+				textTuples = LxtExtractor.ExtractTexts(s);
+			}
+			if (string.Equals(textType, "xdf", StringComparison.OrdinalIgnoreCase))
+			{
+				textTuples = XdfExtractor.ExtractTexts(s);
+			}
+
+			if (textTuples != null)
 			{
 				ImGui.BeginChild("##text_list");
 
@@ -254,10 +269,10 @@ namespace OpenShadows.Workbench.Screens
 
 				ImGui.SetColumnWidth(0, 50.0f);
 
-				foreach ((int idx, string text) in LxtExtractor.ExtractTexts(s))
+				foreach ((int idx, string text) in textTuples)
 				{
 					if (ImGui.Selectable(idx.ToString(), false, ImGuiSelectableFlags.SpanAllColumns))
-					{}
+					{ }
 					ImGui.NextColumn();
 					ImGui.Text(text); ImGui.NextColumn();
 				}
