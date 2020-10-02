@@ -10,8 +10,9 @@ using ImGuiNET;
 using OpenShadows.Data;
 using OpenShadows.Data.Graphic;
 using OpenShadows.FileFormats;
-using OpenShadows.FileFormats.AIF;
-using OpenShadows.FileFormats.ALF;
+using OpenShadows.FileFormats.Archive;
+using OpenShadows.FileFormats.Images;
+using OpenShadows.FileFormats.Text;
 using Veldrid;
 using Veldrid.Sdl2;
 
@@ -25,7 +26,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private string ReadableAlfPath = "DATA\\RIVA.ALF";
 
-		private string SearchString = "aif";
+		private string SearchString = "lxt";
 
 		private int SelectedEntry = -1;
 
@@ -158,7 +159,12 @@ namespace OpenShadows.Workbench.Screens
 
 				if (string.Equals(entry.Name.End(3), "AIF", StringComparison.OrdinalIgnoreCase))
 				{
-					DrawImageViewer();
+					DrawImageViewer("AIF");
+				}
+
+				if (string.Equals(entry.Name.End(3), "LXT", StringComparison.Ordinal))
+				{
+					DrawTextViewer("lxt");
 				}
 
 				ImGui.End();
@@ -171,7 +177,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private uint ZoomFactor = 1;
 
-		private void DrawImageViewer()
+		private void DrawImageViewer(string imageType)
 		{
 			ImGui.Text("I'm an viewable image");
 
@@ -210,6 +216,7 @@ namespace OpenShadows.Workbench.Screens
 				if (ImGui.Button("Close me"))
 				{
 					HasImage = false;
+					CurrentImage.Dispose();
 				}
 
 				ImGui.SameLine();
@@ -226,7 +233,38 @@ namespace OpenShadows.Workbench.Screens
 					ZoomFactor = ZoomFactor == 1 ? 1 : ZoomFactor - 1;
 				}
 
+				ImGui.Text($"Image Size: {CurrentImage.Width}x{CurrentImage.Height}");
+
 				ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(Gd.ResourceFactory, CurrentImage), new Vector2(CurrentImage.Width * ZoomFactor, CurrentImage.Height * ZoomFactor));
+			}
+		}
+
+		private void DrawTextViewer(string textType)
+		{
+			using Stream s = Alf.Entries[SelectedEntry].Open();
+
+			if (string.Equals(textType, "lxt", StringComparison.OrdinalIgnoreCase))
+			{
+				ImGui.BeginChild("##text_list");
+
+				ImGui.Columns(2);
+				ImGui.Text("idx"); ImGui.NextColumn();
+				ImGui.Text("Text"); ImGui.NextColumn();
+				ImGui.Separator();
+
+				ImGui.SetColumnWidth(0, 50.0f);
+
+				foreach ((int idx, string text) in LxtExtractor.ExtractTexts(s))
+				{
+					if (ImGui.Selectable(idx.ToString(), false, ImGuiSelectableFlags.SpanAllColumns))
+					{}
+					ImGui.NextColumn();
+					ImGui.Text(text); ImGui.NextColumn();
+				}
+
+				ImGui.Columns(1);
+
+				ImGui.EndChild();
 			}
 		}
 
@@ -245,6 +283,12 @@ namespace OpenShadows.Workbench.Screens
 		private void SelectEntry(int id)
 		{
 			SelectedEntry = id;
+
+			if (HasImage || CurrentImage != null)
+			{
+				HasImage = false;
+				CurrentImage?.Dispose();
+			}
 		}
 	}
 }
