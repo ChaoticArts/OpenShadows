@@ -21,10 +21,10 @@ This project is in the *very* early stages. There is still a long way to go befo
 * [ ] `.3DM` 3d map
 * [ ] `.DSC` 3d map animation data
 * [ ] `.NEI` 3d map portal data (???)
-* [ ] `.PAL` 3d map texture palette
+* [x] `.PAL` 3d map texture palette
 * [ ] `.PPD` 3d map sky definition (???)
 * [ ] `.TAB` 3d map shading information (???)
-* [ ] `.PIX` 3d map texture
+* [x] `.PIX` 3d map texture
 * [x] `.AIF` image
 * [ ] `.NVF` image set
 * [ ] `.ACE` animated sprites
