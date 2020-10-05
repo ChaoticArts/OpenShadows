@@ -26,7 +26,7 @@ This project is in the *very* early stages. There is still a long way to go befo
 :white_large_square: `.TAB` 3d map shading information (???) <br>
 :white_check_mark:   `.PIX` 3d map texture <br>
 :white_check_mark:   `.AIF` image <br>
-:white_large_square: `.NVF` image set <br>
+:white_check_mark:   `.NVF` image set <br>
 :white_large_square: `.ACE` animated sprites <br>
 :white_large_square: `.BOB` animated screens <br>
 :white_large_square: `.PCX` image (ZSoft PC Paintbrush) <br>
