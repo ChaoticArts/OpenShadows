@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using ImGuiNET;
@@ -18,7 +19,9 @@ namespace OpenShadows.Workbench.Screens
 
 		private ImGuiRenderer ImGuiRenderer;
 
-		private IScreen CurrentScreen;
+		private int CurrentScreen = 1;
+
+		private List<IScreen> Screens = new List<IScreen>();
 
 		public MainScreen()
 		{
@@ -48,7 +51,8 @@ namespace OpenShadows.Workbench.Screens
 				ImGuiRenderer.WindowResized(Window.Width, Window.Height);
 			};
 
-			CurrentScreen = new AlfBrowserScreen();
+			Screens.Add(new AlfBrowserScreen());
+			Screens.Add(new LevelBrowserScreen());
 		}
 
 		public void Dispose()
@@ -109,11 +113,16 @@ namespace OpenShadows.Workbench.Screens
 					ImGui.EndMenu();
 				}
 
-				if (ImGui.BeginMenu($"Change Screen ({CurrentScreen.Title})"))
+				if (ImGui.BeginMenu($"Change Screen ({Screens[CurrentScreen].Title})"))
 				{
-					if (ImGui.MenuItem("ALF-Browser"))
+					if (ImGui.MenuItem("ALF-Browser") && CurrentScreen != 0)
 					{
+						CurrentScreen = 0;
+					}
 
+					if (ImGui.MenuItem("Level Browser") && CurrentScreen != 1)
+					{
+						CurrentScreen = 1;
 					}
 
 					ImGui.EndMenu();
@@ -122,8 +131,8 @@ namespace OpenShadows.Workbench.Screens
 				ImGui.EndMainMenuBar();
 			}
 
-			CurrentScreen?.Update(1.0f / 60.0f);
-			CurrentScreen?.Render(Window, Gd, ImGuiRenderer);
+			Screens[CurrentScreen]?.Update(1.0f / 60.0f);
+			Screens[CurrentScreen]?.Render(Window, Gd, ImGuiRenderer);
 
 			ImGui.PopStyleVar();
 		}
