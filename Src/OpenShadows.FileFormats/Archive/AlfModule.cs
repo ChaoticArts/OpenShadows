@@ -13,6 +13,6 @@ namespace OpenShadows.FileFormats.Archive
 
 		internal List<AlfEntry> AlfEntries { get; set; } = new List<AlfEntry>();
 
-		public IOrderedEnumerable<AlfEntry> Entries => AlfEntries.OrderBy(e => e.Name);
+		public List<AlfEntry> Entries => AlfEntries.OrderBy(e => e.Name).ToList();
 	}
 }

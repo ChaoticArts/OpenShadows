@@ -152,9 +152,8 @@ namespace OpenShadows.Workbench.Screens
 				if (ImGui.Button("Extract"))
 				{
 					const string path = @"Y:\Projekte\Reverse Engineering\NLT\OpenShadows";
-					using Stream s = entry.Open();
-					using FileStream fs = new FileStream(Path.Combine(path, entry.Name), FileMode.Create);
-					s.CopyTo(fs);
+					byte[] entryContents = entry.GetContents();
+					File.WriteAllBytes(Path.Combine(path, entry.Name), entryContents);
 				}
 
 				if (string.Equals(entry.Name.End(3), "AIF", StringComparison.OrdinalIgnoreCase))
@@ -187,9 +186,9 @@ namespace OpenShadows.Workbench.Screens
 
 			if (!HasImage && ImGui.Button("View me"))
 			{
-				using Stream s = Alf.Entries[SelectedEntry].Open();
+				byte[] data = Alf.Entries[SelectedEntry].GetContents();
 
-				ImageData temp = AifExtractor.ExtractImage(s);
+				ImageData temp = AifExtractor.ExtractImage(data);
 
 				Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
 				{
@@ -245,17 +244,17 @@ namespace OpenShadows.Workbench.Screens
 
 		private void DrawTextViewer(string textType)
 		{
-			using Stream s = Alf.Entries[SelectedEntry].Open();
+			byte[] data = Alf.Entries[SelectedEntry].GetContents();
 
 			List<Tuple<int, string>> textTuples = null;
 
 			if (string.Equals(textType, "lxt", StringComparison.OrdinalIgnoreCase))
 			{
-				textTuples = LxtExtractor.ExtractTexts(s);
+				textTuples = LxtExtractor.ExtractTexts(data);
 			}
 			if (string.Equals(textType, "xdf", StringComparison.OrdinalIgnoreCase))
 			{
-				textTuples = XdfExtractor.ExtractTexts(s);
+				textTuples = XdfExtractor.ExtractTexts(data);
 			}
 
 			if (textTuples != null)
@@ -291,8 +290,8 @@ namespace OpenShadows.Workbench.Screens
 
 		private void CloseAlf()
 		{
-			Alf.Dispose();
 			Alf = null;
+			GC.Collect();
 		}
 
 		private void SelectEntry(int id)

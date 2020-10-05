@@ -7,39 +7,35 @@ using System.Threading;
 
 namespace OpenShadows.FileFormats.Archive
 {
-	public class AlfArchive : IDisposable
+	public class AlfArchive
 	{
-		private readonly FileStream AlfStream;
-
 		private readonly List<AlfEntry> AlfEntries = new List<AlfEntry>();
 
 		private readonly List<AlfModule> AlfModules = new List<AlfModule>();
 
-		internal Stream Stream => AlfStream;
+		private readonly byte[] ArchiveContent;
 
-		private object FileLock = new object();
-
-		public long Size => AlfStream.Length;
+		public int Size => ArchiveContent.Length;
 
 		public IReadOnlyList<AlfEntry> Entries => AlfEntries;
 
-		public IEnumerable<AlfModule> Modules => AlfModules.OrderBy(m => m.Name);
+		public List<AlfModule> Modules => AlfModules.OrderBy(m => m.Name).ToList();
 
 		public AlfArchive(string filename)
 		{
-			AlfStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+			ArchiveContent = File.ReadAllBytes(filename);
 
 			ReadToC();
 		}
 
-		public void Dispose()
+		public ReadOnlyMemory<byte> GetContents(AlfEntry entry)
 		{
-			AlfStream?.Dispose();
+			return new ReadOnlyMemory<byte>(ArchiveContent, entry.Offset, entry.Size);
 		}
 
 		private void ReadToC()
 		{
-			using var file = new BinaryReader(AlfStream, Encoding.ASCII, true);
+			using var file = new BinaryReader(new MemoryStream(ArchiveContent), Encoding.ASCII, true);
 
 			// Read Identifier "ALF "
 			if (file.ReadUInt32() != 0x20464c41)
@@ -129,16 +125,6 @@ namespace OpenShadows.FileFormats.Archive
 					}
 				}
 			}
-		}
-
-		public void AcquireLock()
-		{
-			Monitor.Enter(FileLock);
-		}
-
-		public void ReleaseLock()
-		{
-			Monitor.Exit(FileLock);
 		}
 	}
 }

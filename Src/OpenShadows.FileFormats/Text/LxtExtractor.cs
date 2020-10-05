@@ -7,9 +7,9 @@ namespace OpenShadows.FileFormats.Text
 {
 	public static class LxtExtractor
 	{
-		public static List<Tuple<int, string>> ExtractTexts(Stream lxtStream, bool hasCorruptedHeader = false)
+		public static List<Tuple<int, string>> ExtractTexts(byte[] data, bool hasCorruptedHeader = false)
 		{
-			using var f = new BinaryReader(lxtStream);
+			using var f = new BinaryReader(new MemoryStream(data));
 
 			if (!hasCorruptedHeader && !CheckSignature(f))
 			{
@@ -81,6 +81,11 @@ namespace OpenShadows.FileFormats.Text
 
 					case 0xe1:
 						sb.Append("ß");
+						break;
+
+					case 0x1b:
+						br.ReadBytes(3);
+						sb.Append("###");
 						break;
 
 					default:

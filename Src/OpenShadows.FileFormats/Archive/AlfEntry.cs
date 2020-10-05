@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace OpenShadows.FileFormats.Archive
 {
@@ -14,10 +15,10 @@ namespace OpenShadows.FileFormats.Archive
 
 		public AlfArchive Archive { get; set; }
 
-		public Stream Open()
+		public byte[] GetContents()
 		{
-			var bigStream = new AlfEntryStream(this, Archive);
-			return new BufferedStream(bigStream);
+			ReadOnlyMemory<byte> data = Archive.GetContents(this);
+			return data.ToArray();
 		}
 	}
 }

@@ -7,9 +7,9 @@ namespace OpenShadows.FileFormats.Images
 {
 	public static class AifExtractor
 	{
-		public static ImageData ExtractImage(Stream imgStream)
+		public static ImageData ExtractImage(byte[] data)
 		{
-			using var f = new BinaryReader(imgStream);
+			using var f = new BinaryReader(new MemoryStream(data));
 
 			if (!CheckSignature(f))
 			{

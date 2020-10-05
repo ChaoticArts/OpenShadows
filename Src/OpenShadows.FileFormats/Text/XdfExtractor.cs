@@ -7,9 +7,9 @@ namespace OpenShadows.FileFormats.Text
 {
 	public static class XdfExtractor
 	{
-		public static List<Tuple<int, string>> ExtractTexts(Stream xdfStream)
+		public static List<Tuple<int, string>> ExtractTexts(byte[] data)
 		{
-			using var f = new BinaryReader(xdfStream);
+			using var f = new BinaryReader(new MemoryStream(data));
 
 			if (!CheckSignature(f))
 			{
