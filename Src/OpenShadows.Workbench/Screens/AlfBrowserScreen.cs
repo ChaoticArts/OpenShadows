@@ -26,7 +26,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private string ReadableAlfPath = "DATA\\RIVA.ALF";
 
-		private string SearchString = "xdf";
+		private string SearchString = "TIMEDISP.NVF";
 
 		private int SelectedEntry = -1;
 
@@ -160,6 +160,10 @@ namespace OpenShadows.Workbench.Screens
 				{
 					DrawImageViewer("AIF");
 				}
+				if (string.Equals(entry.Name.End(3), "NVF", StringComparison.OrdinalIgnoreCase))
+				{
+					DrawImageViewer("NVF");
+				}
 
 				if (string.Equals(entry.Name.End(3), "LXT", StringComparison.Ordinal))
 				{
@@ -176,6 +180,10 @@ namespace OpenShadows.Workbench.Screens
 
 		private Texture CurrentImage;
 
+		private List<ImageData> CurrentImages;
+
+		private int CurrentImageIndex = 0;
+
 		private bool HasImage;
 
 		private uint ZoomFactor = 1;
@@ -188,30 +196,42 @@ namespace OpenShadows.Workbench.Screens
 			{
 				byte[] data = Alf.Entries[SelectedEntry].GetContents();
 
-				ImageData temp = AifExtractor.ExtractImage(data);
-
-				Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
+				if (imageType == "AIF")
 				{
-					Height      = (uint)temp.Height,
-					Width       = (uint)temp.Width,
-					Format      = PixelFormat.R8_G8_B8_A8_UNorm_SRgb,
-					Type        = TextureType.Texture2D,
-					Usage       = TextureUsage.Sampled,
-					MipLevels   = 1,
-					Depth       = 1,
-					ArrayLayers = 1
-				});
+					CurrentImages = new List<ImageData>
+					{
+						AifExtractor.ExtractImage(data)
+					};
+					CurrentImageIndex = 0;
+				}
+				else if (imageType == "NVF")
+				{
+					// special handling of DUALPICS.NVF
+					if (Alf.Entries[SelectedEntry].Name == "DUALPICS.NVF")
+					{
+						byte[] dualPals = Alf.Entries.First(p => p.Name == "DUALPALS.DAT").GetContents();
+						var extraPalettes = new List<Palette>();
+						for (int i = 0; i < 13; i++)
+						{
+							var span = new ReadOnlySpan<byte>(dualPals, i * 96, 96);
+							var p = new Palette(span.ToArray(), 32);
+							extraPalettes.Add(p);
+						}
 
-				GCHandle pinnedArray = GCHandle.Alloc(temp.PixelData, GCHandleType.Pinned);
-				IntPtr   pointer     = pinnedArray.AddrOfPinnedObject();
+						CurrentImages = NvfExtractor.ExtractImage(data, extraPalettes);
+					}
+					else
+					{
+						CurrentImages = NvfExtractor.ExtractImage(data);
+					}
+					CurrentImageIndex = 0;
+				}
+				else
+				{
+					throw new NotSupportedException($"format {imageType} is not yet supported");
+				}
 
-				Gd.UpdateTexture(img, pointer, (uint)temp.PixelData.Length, 0, 0, 0, (uint)temp.Width, (uint)temp.Height, 1, 0, 0);
-
-				pinnedArray.Free();
-
-				CurrentImage = img;
-				HasImage     = true;
-				ZoomFactor   = 1;
+				LoadImage();
 			}
 
 			if (HasImage && CurrentImage != null)
@@ -223,20 +243,34 @@ namespace OpenShadows.Workbench.Screens
 				}
 
 				ImGui.SameLine();
-
 				if (ImGui.Button("+"))
 				{
 					ZoomFactor++;
 				}
 
 				ImGui.SameLine();
-
 				if (ImGui.Button("-"))
 				{
 					ZoomFactor = ZoomFactor == 1 ? 1 : ZoomFactor - 1;
 				}
 
 				ImGui.Text($"Image Size: {CurrentImage.Width}x{CurrentImage.Height}");
+
+				ImGui.Text($"Image {CurrentImageIndex + 1}/{CurrentImages.Count}");
+
+				ImGui.SameLine();
+				if (ImGui.Button("Next") && CurrentImageIndex < CurrentImages.Count - 1)
+				{
+					CurrentImageIndex++;
+					LoadImage(true);
+				}
+
+				ImGui.SameLine();
+				if (ImGui.Button("Last") && CurrentImageIndex > 0)
+				{
+					CurrentImageIndex--;
+					LoadImage(true);
+				}
 
 				ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(Gd.ResourceFactory, CurrentImage), new Vector2(CurrentImage.Width * ZoomFactor, CurrentImage.Height * ZoomFactor));
 			}
@@ -279,6 +313,39 @@ namespace OpenShadows.Workbench.Screens
 				ImGui.Columns(1);
 
 				ImGui.EndChild();
+			}
+		}
+
+		private void LoadImage(bool keepZoom = false)
+		{
+			CurrentImage?.Dispose();
+
+			ImageData temp = CurrentImages[CurrentImageIndex];
+
+			if (temp?.Height > 0)
+			{
+				Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
+				{
+					Height      = (uint)temp.Height,
+					Width       = (uint)temp.Width,
+					Format      = PixelFormat.R8_G8_B8_A8_UNorm_SRgb,
+					Type        = TextureType.Texture2D,
+					Usage       = TextureUsage.Sampled,
+					MipLevels   = 1,
+					Depth       = 1,
+					ArrayLayers = 1
+				});
+
+				GCHandle pinnedArray = GCHandle.Alloc(temp.PixelData, GCHandleType.Pinned);
+				IntPtr   pointer     = pinnedArray.AddrOfPinnedObject();
+
+				Gd.UpdateTexture(img, pointer, (uint)temp.PixelData.Length, 0, 0, 0, (uint)temp.Width, (uint)temp.Height, 1, 0, 0);
+
+				pinnedArray.Free();
+
+				CurrentImage = img;
+				HasImage     = true;
+				ZoomFactor   = keepZoom ? ZoomFactor : 1;
 			}
 		}
 

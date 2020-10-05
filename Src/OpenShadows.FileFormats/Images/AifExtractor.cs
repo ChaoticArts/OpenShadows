@@ -131,7 +131,7 @@ namespace OpenShadows.FileFormats.Images
 			byte[] compressedData   = br.ReadBytes(sizeOfCompressedBlock - 4);
 			byte[] uncompressedData = new byte[img.Height * img.Width];
 
-			if (UnpackPP20(compressedData, compressedData.Length, uncompressedData, uncompressedData.Length) != 0)
+			if (Native_UnpackPP20(compressedData, compressedData.Length, uncompressedData, uncompressedData.Length) != 0)
 			{
 				throw new Exception("could not unpack PP20");
 			}
@@ -143,6 +143,6 @@ namespace OpenShadows.FileFormats.Images
 		}
 
 		[DllImport("OpenShadows.Native.dll", EntryPoint = "unpack_pp20", CallingConvention = CallingConvention.StdCall)]
-		private static extern int UnpackPP20([In][Out] byte[] inData, int inSize, [In][Out] byte[] outData, int outSize);
+		private static extern int Native_UnpackPP20([In][Out] byte[] inData, int inSize, [In][Out] byte[] outData, int outSize);
 	}
 }
