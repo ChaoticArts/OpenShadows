@@ -17,56 +17,56 @@ The game will be developed using **.NET Core** in combination with [Veldrid](htt
 This project is in the *very* early stages. There is still a long way to go before there's anything playable. The initial focus is on understanding the data formats and converting them to data that can be used by modern systems (images, sounds, music, ...).
 
 ### Understand, identify and parse data files
-* :white_check_mark:   `.ALF` Game archive files
-* :white_large_square: `.3DM` 3d map
-* :white_large_square: `.DSC` 3d map animation data
-* :white_large_square: `.NEI` 3d map portal data (???)
-* :white_check_mark:   `.PAL` 3d map texture palette
-* :white_large_square: `.PPD` 3d map sky definition (???)
-* :white_large_square: `.TAB` 3d map shading information (???)
-* :white_check_mark:   `.PIX` 3d map texture
-* :white_check_mark:   `.AIF` image
-* :white_large_square: `.NVF` image set
-* :white_large_square: `.ACE` animated sprites
-* :white_large_square: `.BOB` animated screens
-* :white_large_square: `.PCX` image (ZSoft PC Paintbrush)
-* :white_large_square: `.AAF` cutscene definition
-* :white_large_square: `.SMK` video (Smacker)
-* :white_large_square: `.ASF` audio (raw PCM unsigned 8-bit, mono 22050 Hz) with ASF header
-* :white_large_square: `.RAW` audio (raw PCM unsigned 8-bit, mono 22050 Hz)
-* :white_large_square: `.HMI` audio (Human Machine Interfaces format)
-* :white_check_mark:   `.LXT` text definition
-* :white_large_square: `.XDF` dialogue definition
-* :white_large_square: `.DAT` different types of gamedata
-* :white_large_square: `.NPC` joinable npc data
-* :white_large_square: `.HTT` some form of hyper text
-* :white_large_square: `.ANN` map annotations for minimaps
-* :white_large_square: `.APA` (???)
-* :white_large_square: `.MSK` (???)
-* :white_large_square: `.MST` (???)
-* :white_large_square: `.LST` (???)
-* :white_large_square: `.MOF` (???)
-* :white_large_square: `.MOV` (???)
-* :white_large_square: `.OFF` (???)
+:white_check_mark:   `.ALF` Game archive files <br>
+:white_large_square: `.3DM` 3d map <br>
+:white_large_square: `.DSC` 3d map animation data <br>
+:white_large_square: `.NEI` 3d map portal data (???) <br>
+:white_check_mark:   `.PAL` 3d map texture palette <br>
+:white_large_square: `.PPD` 3d map sky definition (???) <br>
+:white_large_square: `.TAB` 3d map shading information (???) <br>
+:white_check_mark:   `.PIX` 3d map texture <br>
+:white_check_mark:   `.AIF` image <br>
+:white_large_square: `.NVF` image set <br>
+:white_large_square: `.ACE` animated sprites <br>
+:white_large_square: `.BOB` animated screens <br>
+:white_large_square: `.PCX` image (ZSoft PC Paintbrush) <br>
+:white_large_square: `.AAF` cutscene definition <br>
+:white_large_square: `.SMK` video (Smacker) <br>
+:white_large_square: `.ASF` audio (raw PCM unsigned 8-bit, mono 22050 Hz) with ASF header <br>
+:white_large_square: `.RAW` audio (raw PCM unsigned 8-bit, mono 22050 Hz) <br>
+:white_large_square: `.HMI` audio (Human Machine Interfaces format) <br>
+:white_check_mark:   `.LXT` text definition <br>
+:white_large_square: `.XDF` dialogue definition <br>
+:white_large_square: `.DAT` different types of gamedata <br>
+:white_large_square: `.NPC` joinable npc data <br>
+:white_large_square: `.HTT` some form of hyper text <br>
+:white_large_square: `.ANN` map annotations for minimaps <br>
+:white_large_square: `.APA` (???) <br>
+:white_large_square: `.MSK` (???) <br>
+:white_large_square: `.MST` (???) <br>
+:white_large_square: `.LST` (???) <br>
+:white_large_square: `.MOF` (???) <br>
+:white_large_square: `.MOV` (???) <br>
+:white_large_square: `.OFF` (???) <br>
 
 
 ### Rendering
-* :white_large_square: Render game GUI
-* :white_large_square: Render 3D map loaded from `.3dm`, including textures and animations
-* :white_large_square: Render isometric battle maps
-* :white_large_square: Render video sequences
+:white_large_square: Render game GUI <br>
+:white_large_square: Render 3D map loaded from `.3dm`, including textures and animations <br>
+:white_large_square: Render isometric battle maps <br>
+:white_large_square: Render video sequences <br>
 
 ### Game logic
-* :white_large_square: Character and party management
-* :white_large_square: Shops and inventory management
-* :white_large_square: Visiting houses and npc dialogues
-* :white_large_square: Level exploration
-* :white_large_square: Quest state and system
-* :white_large_square: Battles
+:white_large_square: Character and party management <br>
+:white_large_square: Shops and inventory management <br>
+:white_large_square: Visiting houses and npc dialogues <br>
+:white_large_square: Level exploration <br>
+:white_large_square: Quest state and system <br>
+:white_large_square: Battles <br>
 
 ### Platforms
-* :white_large_square: Windows
-* :white_large_square: Linux
+:white_large_square: Windows <br>
+:white_large_square: Linux <br>
 
 
 ## Community
