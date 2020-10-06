@@ -26,7 +26,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private string ReadableAlfPath = "DATA\\RIVA.ALF";
 
-		private string SearchString = "TIMEDISP.NVF";
+		private string SearchString = "ACE";
 
 		private int SelectedEntry = -1;
 
@@ -164,6 +164,10 @@ namespace OpenShadows.Workbench.Screens
 				{
 					DrawImageViewer("NVF");
 				}
+				if (string.Equals(entry.Name.End(3), "ACE", StringComparison.OrdinalIgnoreCase))
+				{
+					DrawImageViewer("ACE");
+				}
 
 				if (string.Equals(entry.Name.End(3), "LXT", StringComparison.Ordinal))
 				{
@@ -214,7 +218,7 @@ namespace OpenShadows.Workbench.Screens
 						for (int i = 0; i < 13; i++)
 						{
 							var span = new ReadOnlySpan<byte>(dualPals, i * 96, 96);
-							var p = new Palette(span.ToArray(), 32);
+							var p    = new Palette(span.ToArray(), 32);
 							extraPalettes.Add(p);
 						}
 
@@ -226,12 +230,27 @@ namespace OpenShadows.Workbench.Screens
 					}
 					CurrentImageIndex = 0;
 				}
+				else if (imageType == "ACE")
+				{
+					try
+					{
+						CurrentImages     = AceExtractor.ExtractImage(data).Animations[0].Images;
+						CurrentImageIndex = 0;
+					}
+					catch (NotImplementedException e)
+					{
+						Console.WriteLine(e.Message);
+					}
+				}
 				else
 				{
 					throw new NotSupportedException($"format {imageType} is not yet supported");
 				}
 
-				LoadImage();
+				if (CurrentImages != null)
+				{
+					LoadImage();
+				}
 			}
 
 			if (HasImage && CurrentImage != null)
@@ -353,6 +372,15 @@ namespace OpenShadows.Workbench.Screens
 		{
 			Alf = new AlfArchive(ReadableAlfPath);
 			SelectedEntry = -1;
+
+			/*
+			foreach (AlfEntry entry in Alf.Entries.Where(e => e.Name.ToUpper().EndsWith("ACE")))
+			{
+				byte[] data = entry.GetContents();
+				string path = Path.Combine(@"Y:\Projekte\Reverse Engineering\NLT\OpenShadows", entry.Name);
+				File.WriteAllBytes(path, data);
+			}
+			*/
 		}
 
 		private void CloseAlf()
