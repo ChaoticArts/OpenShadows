@@ -17,8 +17,7 @@ namespace OpenShadows.FileFormats.Archive
 
 		public byte[] GetContents()
 		{
-			ReadOnlyMemory<byte> data = Archive.GetContents(this);
-			return data.ToArray();
+			return Archive.GetContents(this);
 		}
 	}
 }

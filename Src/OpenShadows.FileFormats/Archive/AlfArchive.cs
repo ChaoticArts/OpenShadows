@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
 namespace OpenShadows.FileFormats.Archive
 {
-	public class AlfArchive
+	public class AlfArchive : IDisposable
 	{
 		private readonly List<AlfEntry> AlfEntries = new List<AlfEntry>();
 
 		private readonly List<AlfModule> AlfModules = new List<AlfModule>();
 
-		private readonly byte[] ArchiveContent;
-
-		public int Size => ArchiveContent.Length;
+		private readonly MemoryMappedFile AlfFile;
 
 		public IReadOnlyList<AlfEntry> Entries => AlfEntries;
 
@@ -23,19 +22,30 @@ namespace OpenShadows.FileFormats.Archive
 
 		public AlfArchive(string filename)
 		{
-			ArchiveContent = File.ReadAllBytes(filename);
+			AlfFile = MemoryMappedFile.CreateFromFile(filename, FileMode.Open);
 
 			ReadToC();
 		}
 
-		public ReadOnlyMemory<byte> GetContents(AlfEntry entry)
+		public byte[] GetContents(AlfEntry entry)
 		{
-			return new ReadOnlyMemory<byte>(ArchiveContent, entry.Offset, entry.Size);
+			using MemoryMappedViewAccessor accessor = AlfFile.CreateViewAccessor(entry.Offset, entry.Size, MemoryMappedFileAccess.Read);
+			var data = new byte[entry.Size];
+			accessor.ReadArray(0, data, 0, entry.Size);
+
+			return data;
+		}
+
+		public byte[] GetContents(string entryName)
+		{
+			AlfEntry entry = Entries.First(e => e.Name == entryName);
+
+			return entry != null ? GetContents(entry) : null;
 		}
 
 		private void ReadToC()
 		{
-			using var file = new BinaryReader(new MemoryStream(ArchiveContent), Encoding.ASCII, true);
+			using var file = new BinaryReader(AlfFile.CreateViewStream(0, 0, MemoryMappedFileAccess.Read), Encoding.ASCII);
 
 			// Read Identifier "ALF "
 			if (file.ReadUInt32() != 0x20464c41)
@@ -125,6 +135,11 @@ namespace OpenShadows.FileFormats.Archive
 					}
 				}
 			}
+		}
+
+		public void Dispose()
+		{
+			AlfFile?.Dispose();
 		}
 	}
 }
