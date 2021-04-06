@@ -1,3 +1,8 @@
+> :warning: **On hold**: The project is on hold for the not foreseeable future due to RL reasons.
+>
+> shihan42, 2021-04-06
+
+
 # OpenShadows
 Engine reimplementation of Shadows over Riva.
 
