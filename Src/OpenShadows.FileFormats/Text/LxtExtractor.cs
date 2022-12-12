@@ -7,7 +7,26 @@ namespace OpenShadows.FileFormats.Text
 {
 	public static class LxtExtractor
 	{
-		public static List<Tuple<int, string>> ExtractTexts(byte[] data, bool hasCorruptedHeader = false)
+		/// <summary>
+		/// Very special handling for ITEMNAME.LXT which has no real structure whatsoever.
+		/// </summary>
+        public static List<Tuple<int, string>> ExtractItemNames(byte[] data, bool hasCorruptedHeader = false)
+        {
+            using var f = new BinaryReader(new MemoryStream(data));
+
+            var strings = new List<Tuple<int, string>>();
+
+			int counter = 0;
+			while (f.BaseStream.Position< f.BaseStream.Length) 
+			{
+                strings.Add(new Tuple<int, string>(counter, ExtractString(f)));
+				counter++;
+            }
+
+            return strings;
+        }
+
+        public static List<Tuple<int, string>> ExtractTexts(byte[] data, bool hasCorruptedHeader = false)
 		{
 			using var f = new BinaryReader(new MemoryStream(data));
 

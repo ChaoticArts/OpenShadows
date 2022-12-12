@@ -337,7 +337,14 @@ namespace OpenShadows.Workbench.Screens
 
             if (string.Equals(textType, "lxt", StringComparison.OrdinalIgnoreCase))
             {
-                textTuples = LxtExtractor.ExtractTexts(data);
+                if (Alf.Entries[SelectedEntry].Name == "ITEMNAME.LXT")
+                {
+                    textTuples = LxtExtractor.ExtractItemNames(data);
+                }
+                else
+                {
+                    textTuples = LxtExtractor.ExtractTexts(data);
+                }
             }
             if (string.Equals(textType, "xdf", StringComparison.OrdinalIgnoreCase))
             {
