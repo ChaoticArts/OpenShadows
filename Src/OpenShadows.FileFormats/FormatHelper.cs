@@ -40,7 +40,7 @@ namespace OpenShadows.FileFormats
 				"LST" => "(???)",
 				"MOF" => "(???)",
 				"MOV" => "(???)",
-				"OFF" => "(???)",
+				"OFF" => "battle screen object definitions (???)",
 				_     => "<!!!NEVER SEEN BEFORE!!!>"
 			};
 		}
