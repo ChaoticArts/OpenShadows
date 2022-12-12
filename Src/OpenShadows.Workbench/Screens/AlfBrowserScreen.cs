@@ -337,9 +337,11 @@ namespace OpenShadows.Workbench.Screens
 
             if (string.Equals(textType, "lxt", StringComparison.OrdinalIgnoreCase))
             {
-                if (Alf.Entries[SelectedEntry].Name == "ITEMNAME.LXT")
+                if (Alf.Entries[SelectedEntry].Name == "ITEMNAME.LXT" ||
+                    Alf.Entries[SelectedEntry].Name == "PRINTER.LXT" ||
+                    Alf.Entries[SelectedEntry].Name == "MONNAMES.LXT")
                 {
-                    textTuples = LxtExtractor.ExtractItemNames(data);
+                    textTuples = LxtExtractor.ExtractRawTexts(data);
                 }
                 else
                 {
@@ -367,7 +369,7 @@ namespace OpenShadows.Workbench.Screens
                     if (ImGui.Selectable(idx.ToString(), false, ImGuiSelectableFlags.SpanAllColumns))
                     { }
                     ImGui.NextColumn();
-                    ImGui.Text(text); ImGui.NextColumn();
+                    ImGui.TextUnformatted(text); ImGui.NextColumn();
                 }
 
                 ImGui.Columns(1);
