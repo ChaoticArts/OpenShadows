@@ -8,9 +8,10 @@ namespace OpenShadows.FileFormats.Text
 	public static class LxtExtractor
 	{
 		/// <summary>
-		/// Very special handling for ITEMNAME.LXT which has no real structure whatsoever.
+		/// Very special handling for raw text files (like ITEMNAME.LXT, PRINTER.LXT) which 
+		/// have no real structure whatsoever. (just an array of zero-terminated strings)
 		/// </summary>
-        public static List<Tuple<int, string>> ExtractItemNames(byte[] data, bool hasCorruptedHeader = false)
+        public static List<Tuple<int, string>> ExtractRawTexts(byte[] data, bool hasCorruptedHeader = false)
         {
             using var f = new BinaryReader(new MemoryStream(data));
 
