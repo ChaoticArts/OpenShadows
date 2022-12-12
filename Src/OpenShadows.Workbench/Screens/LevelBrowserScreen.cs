@@ -10,6 +10,8 @@ using OpenShadows.Data.Graphic;
 using OpenShadows.FileFormats;
 using OpenShadows.FileFormats.Archive;
 using OpenShadows.FileFormats.Images;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 using Veldrid;
 using Veldrid.Sdl2;
 using BinaryReader = System.IO.BinaryReader;
@@ -222,7 +224,25 @@ namespace OpenShadows.Workbench.Screens
 					ZoomFactor   = 1;
 				}
 
-				if (HasImage && CurrentImage != null)
+                if (HasImage && ImGui.Button("Extract as PNG"))
+                {
+                    byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
+                    var br = new BinaryReader(new MemoryStream(paletteData));
+                    Palette p = Palette.LoadFromPal(br);
+
+                    byte[] imageData = selectedTexture.GetContents();
+                    ImageData temp = PixExtractor.ExtractImage(imageData, p);
+
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(Alf.Entries[SelectedEntry].Name) + ".png");
+                    var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
+                    img.Save(fn);
+                }
+
+                if (HasImage && CurrentImage != null)
 				{
 					if (ImGui.Button("Close me"))
 					{
