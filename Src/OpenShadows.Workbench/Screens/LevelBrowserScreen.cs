@@ -133,11 +133,33 @@ namespace OpenShadows.Workbench.Screens
 				AlfModule levelModule   = Alf.Modules[SelectedEntry];
 				AlfModule textureModule = Alf.Modules[SelectedEntry + 1];
 
-				ImGui.Text($"Level: {levelModule.Name}");
+				ImGui.Text($"Level: {levelModule.Name}");				
 				ImGui.Text($"3D-Definition: {levelModule.Entries.First(e => e.Name.EndsWith("3DM")).Name}");
-				ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
+                ImGui.SameLine();
+                if (ImGui.Button("Extract Level"))
+                {
+                    var entry = levelModule.Entries.First(e => e.Name.EndsWith("3DM"));
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, entry.Name);
+                    File.WriteAllBytes(fn, entry.GetContents());
+                }
+                ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
+                ImGui.SameLine();
+                if (ImGui.Button("Extract Palette"))
+                {
+					var entry = levelModule.Entries.First(e => e.Name.EndsWith("PAL"));
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, entry.Name);
+                    File.WriteAllBytes(fn, entry.GetContents());
+                }
 
-				ImGui.BeginChild("##text_list");
+                ImGui.BeginChild("##text_list");
 
 				ImGui.Columns(2);
 				ImGui.Text("idx"); ImGui.NextColumn();
