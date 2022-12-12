@@ -20,7 +20,7 @@ namespace OpenShadows.FileFormats.Text
 			int counter = 0;
 			while (f.BaseStream.Position< f.BaseStream.Length) 
 			{
-                strings.Add(new Tuple<int, string>(counter, ExtractString(f)));
+                strings.Add(new Tuple<int, string>(counter, Utils.ExtractString(f)));
 				counter++;
             }
 
@@ -48,7 +48,7 @@ namespace OpenShadows.FileFormats.Text
 
 			for (int i = 0; i < numberOfStrings; i++)
 			{
-				strings.Add(new Tuple<int, string>(i, ExtractString(f)));
+				strings.Add(new Tuple<int, string>(i, Utils.ExtractString(f)));
 			}
 
 			return strings;
@@ -62,60 +62,6 @@ namespace OpenShadows.FileFormats.Text
 			byte s = br.ReadByte();
 
 			return l == 0x4c && x == 0x58 && t == 0x54 && s == 0x20;
-		}
-
-		private static string ExtractString(BinaryReader br)
-		{
-			var sb = new StringBuilder();
-
-			byte b;
-			do
-			{
-				b = br.ReadByte();
-
-				switch (b)
-				{
-					case 0x81:
-						sb.Append("ü");
-						break;
-
-					case 0x9a:
-						sb.Append("Ü");
-						break;
-
-					case 0x84:
-						sb.Append("ä");
-						break;
-
-					case 0x8e:
-						sb.Append("Ä");
-						break;
-
-					case 0x94:
-						sb.Append("ö");
-						break;
-
-					case 0x99:
-						sb.Append("Ö");
-						break;
-
-					case 0xe1:
-						sb.Append("ß");
-						break;
-
-					case 0x1b:
-						br.ReadBytes(3);
-						sb.Append("###");
-						break;
-
-					default:
-						sb.Append(Encoding.ASCII.GetString(new[] { b }));
-						break;
-				}
-			}
-			while (b != 0x00);
-
-			return sb.ToString();
 		}
 	}
 }

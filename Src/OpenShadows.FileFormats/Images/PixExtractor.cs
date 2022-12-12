@@ -18,23 +18,23 @@ namespace OpenShadows.FileFormats.Images
 			f.ReadBytes(0x0a);
 
 			// unpack BoPa
-			uint uncompressedSize = SwapEndianess(f.ReadUInt32());
-			uint compressedSize   = SwapEndianess(f.ReadUInt32());
+			uint uncompressedSize = Utils.SwapEndianess(f.ReadUInt32());
+			uint compressedSize   = Utils.SwapEndianess(f.ReadUInt32());
 			var  uncompressedData = new byte[uncompressedSize];
 			var  compressedData   = f.ReadBytes((int)compressedSize);
 
-			UnpackBoPa(compressedData, compressedSize, uncompressedData, uncompressedSize);
+            Utils.UnpackBoPa(compressedData, compressedSize, uncompressedData, uncompressedSize);
 
 			// read pix data
 			var img = new ImageData
 			{
-				Width  = SwapEndianess(BitConverter.ToUInt16(uncompressedData, 0x1b)),
-				Height = SwapEndianess(BitConverter.ToUInt16(uncompressedData, 0x1d))
+				Width  = Utils.SwapEndianess(BitConverter.ToUInt16(uncompressedData, 0x1b)),
+				Height = Utils.SwapEndianess(BitConverter.ToUInt16(uncompressedData, 0x1d))
 			};
 
 			img.PixelData = new byte[img.Width * img.Height * 4];
 
-			uint uncompressedOffset = 40 + SwapEndianess(BitConverter.ToUInt32(uncompressedData, 0x14));
+			uint uncompressedOffset = 40 + Utils.SwapEndianess(BitConverter.ToUInt32(uncompressedData, 0x14));
 
 			for (int i = 0; i < img.Width * img.Height; i++)
 			{
@@ -47,22 +47,5 @@ namespace OpenShadows.FileFormats.Images
 
 			return img;
 		}
-
-		private static uint SwapEndianess(uint n)
-		{
-			byte[] bytes = BitConverter.GetBytes(n);
-			Array.Reverse(bytes);
-			return BitConverter.ToUInt32(bytes);
-		}
-
-		private static ushort SwapEndianess(ushort n)
-		{
-			byte[] bytes = BitConverter.GetBytes(n);
-			Array.Reverse(bytes);
-			return BitConverter.ToUInt16(bytes);
-		}
-
-		[DllImport("OpenShadows.Native.dll", EntryPoint = "unpack_bopa", CallingConvention = CallingConvention.StdCall)]
-		private static extern int UnpackBoPa([In][Out] byte[] inData, uint inSize, [In][Out] byte[] outData, uint outSize);
 	}
 }

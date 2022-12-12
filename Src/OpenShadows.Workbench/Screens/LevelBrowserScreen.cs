@@ -15,6 +15,7 @@ using SixLabors.ImageSharp;
 using Veldrid;
 using Veldrid.Sdl2;
 using BinaryReader = System.IO.BinaryReader;
+using OpenShadows.FileFormats.Levels;
 
 namespace OpenShadows.Workbench.Screens
 {
@@ -144,7 +145,11 @@ namespace OpenShadows.Workbench.Screens
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract");
                     fn = Path.Combine(fn, entry.Name);
-                    File.WriteAllBytes(fn, entry.GetContents());
+					var compressedData = entry.GetContents();
+					var uncompressedData = Level3dmExtractor.UncompressLevel(compressedData);
+                    File.WriteAllBytes(fn, uncompressedData);
+
+					var level = Level3dmExtractor.ExtractLevel(uncompressedData);
                 }
                 ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
                 ImGui.SameLine();
@@ -219,7 +224,7 @@ namespace OpenShadows.Workbench.Screens
 					var br = new BinaryReader(new MemoryStream(paletteData));
 					Palette p = Palette.LoadFromPal(br);
 
-					byte[] imageData = selectedTexture.GetContents();
+                    byte[] imageData = selectedTexture.GetContents();
 					ImageData temp = PixExtractor.ExtractImage(imageData, p);
 
 					Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
@@ -246,22 +251,36 @@ namespace OpenShadows.Workbench.Screens
 					ZoomFactor   = 1;
 				}
 
-                if (HasImage && ImGui.Button("Extract as PNG"))
+                if (HasImage)
                 {
-                    byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
-                    var br = new BinaryReader(new MemoryStream(paletteData));
-                    Palette p = Palette.LoadFromPal(br);
+					if (ImGui.Button("Extract as PNG"))
+					{
+                        byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
+                        var br = new BinaryReader(new MemoryStream(paletteData));
+                        Palette p = Palette.LoadFromPal(br);
 
-                    byte[] imageData = selectedTexture.GetContents();
-                    ImageData temp = PixExtractor.ExtractImage(imageData, p);
+                        byte[] imageData = selectedTexture.GetContents();
+                        ImageData temp = PixExtractor.ExtractImage(imageData, p);
 
-                    string fn =
-                        Path.Combine(
-                            Path.GetDirectoryName(ReadableAlfPath),
-                            "extract");
-                    fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(Alf.Entries[SelectedEntry].Name) + ".png");
-                    var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
-                    img.Save(fn);
+                        string fn =
+                            Path.Combine(
+                                Path.GetDirectoryName(ReadableAlfPath),
+                                "extract");
+                        fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(Alf.Entries[SelectedEntry].Name) + ".png");
+                        var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
+                        img.Save(fn);
+                    }
+					ImGui.SameLine();
+                    if (ImGui.Button("Extract raw"))
+                    {
+                        byte[] fileData = selectedTexture.GetContents();
+                        string fn =
+                            Path.Combine(
+                                Path.GetDirectoryName(ReadableAlfPath),
+                                "extract");
+                        fn = Path.Combine(fn, Alf.Entries[SelectedEntry].Name);
+                        File.WriteAllBytes(fn, fileData);
+                    }
                 }
 
                 if (HasImage && CurrentImage != null)
