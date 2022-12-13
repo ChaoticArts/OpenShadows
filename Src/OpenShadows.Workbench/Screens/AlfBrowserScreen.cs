@@ -11,6 +11,7 @@ using OpenShadows.Data;
 using OpenShadows.Data.Graphic;
 using OpenShadows.FileFormats;
 using OpenShadows.FileFormats.Archive;
+using OpenShadows.FileFormats.DatFiles;
 using OpenShadows.FileFormats.Images;
 using OpenShadows.FileFormats.Text;
 using SixLabors.ImageSharp;
@@ -185,6 +186,11 @@ namespace OpenShadows.Workbench.Screens
                     DrawTextViewer("xdf");
                 }
 
+                if (string.Equals(entry.Name.End(3), "DAT", StringComparison.Ordinal))
+                {
+                    DrawDatViewer(entry.Name);
+                }
+
                 if (string.Equals(entry.Name.End(3), "OFF", StringComparison.Ordinal))
                 {
                     DrawOffsetsViewer();
@@ -326,6 +332,25 @@ namespace OpenShadows.Workbench.Screens
                     var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(curImg.PixelData, curImg.Width, curImg.Height);
                     img.Save(fn);
                 }
+            }
+        }
+
+        private void DrawDatViewer(string filename)
+        {
+            byte[] data = Alf.Entries[SelectedEntry].GetContents();
+            switch (filename)
+            {
+                case "AMAPIPOS.DAT":
+                    {
+                        DatMapIconPosition file = DatExtractor.ExtractDatFile<DatMapIconPosition>(data);
+                    }
+                    break;
+
+                default:
+                    {
+
+                    }
+                    break;
             }
         }
 
