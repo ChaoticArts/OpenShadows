@@ -153,6 +153,12 @@ namespace OpenShadows.Workbench.Screens
                     File.WriteAllBytes(fn, uncompressedData);
 
                     var level = Level3dmExtractor.ExtractLevel(uncompressedData);
+                    level.DumpToObj(
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract",
+                            Path.GetFileNameWithoutExtension(entry.Name)),
+                        0.00001f);
                 }
                 ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
                 ImGui.SameLine();

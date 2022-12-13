@@ -137,7 +137,7 @@ namespace OpenShadows.FileFormats.Levels
             // Read object data
             f.BaseStream.Position = objectDataOffset;
 
-            // Read object able
+            // Read object table
             f.BaseStream.Position = objectTableOffset;
             for (int i = 0; i < objectCount; i++)
             {
@@ -154,7 +154,7 @@ namespace OpenShadows.FileFormats.Levels
                 result.Objects.Add(levelObject);
 
                 levelObject.VertexCount = f.ReadUInt16();
-                levelObject.FaceCount = f.ReadUInt16();
+                levelObject.QuadCount = f.ReadUInt16();
 
                 f.ReadInt16();
                 f.ReadInt16();
@@ -178,12 +178,61 @@ namespace OpenShadows.FileFormats.Levels
                 uint offset = f.ReadUInt32();
                 uint vertexBytes = f.ReadUInt32();
 
-                uint facesOffset = f.ReadUInt32();
+                uint quadsOffset = f.ReadUInt32();
                 uint materialsOffset = f.ReadUInt32();
                 uint materials2Offset = f.ReadUInt32();
 
                 // Unknown
                 f.ReadBytes(48);
+                long curPos = f.BaseStream.Position;
+
+                // Read faces
+                try
+                {
+                    // Read object data
+                    f.BaseStream.Position = offset;
+
+                    // Read vertices
+                    LevelObjectVertex[] vertices = new LevelObjectVertex[levelObject.VertexCount];
+                    for (int j = 0; j < levelObject.VertexCount; j++)
+                    {
+                        vertices[j] = new LevelObjectVertex()
+                        {
+                            X = f.ReadInt32(),
+                            Y = f.ReadInt32(),
+                            Z = f.ReadInt32()
+                        };
+                    }
+                    levelObject.Vertices = vertices;
+
+                    f.BaseStream.Position = offset + quadsOffset;
+                    // "Faces" are actually quads
+                    LevelObjectQuad[] quads = new LevelObjectQuad[levelObject.QuadCount];
+                    for (int j = 0; j < levelObject.QuadCount; j++)
+                    {
+                        quads[j] = new LevelObjectQuad();
+                        for (int k = 0; k < 4; k++)
+                        {
+                            quads[j].Indices[k] = f.ReadUInt16();
+                            quads[j].Indices2[k] = f.ReadUInt16();
+                            quads[j].Extra1[k] = f.ReadInt32();
+                            quads[j].Extra2[k] = f.ReadInt32();
+                        }
+                    }
+                    levelObject.Quads = quads;
+                    levelObject.CreateTriangles();
+
+                    // Read materials
+                    f.BaseStream.Position = offset + materialsOffset;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+                finally
+                {
+                    f.BaseStream.Position = curPos;
+                }
             }
 
             return result;
