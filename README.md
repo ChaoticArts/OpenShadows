@@ -1,8 +1,3 @@
-> :warning: **On hold**: The project is on hold for the not foreseeable future due to RL reasons.
->
-> shihan42, 2021-04-06
-
-
 # OpenShadows
 Engine reimplementation of Shadows over Riva.
 
@@ -52,7 +47,7 @@ This project is in the *very* early stages. There is still a long way to go befo
 :white_large_square: `.LST` (???) <br>
 :white_large_square: `.MOF` (???) <br>
 :white_large_square: `.MOV` (???) <br>
-:white_large_square: `.OFF` (???) <br>
+:white_large_square: `.OFF` (??? probably positioning information of objects on battle screen) <br>
 
 
 ### Rendering
