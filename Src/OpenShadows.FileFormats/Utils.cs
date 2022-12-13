@@ -22,6 +22,24 @@ namespace OpenShadows.FileFormats
             return BitConverter.ToUInt16(bytes);
         }
 
+        public static byte[] UnpackBoPaCompressedData(byte[] data)
+        {
+            using var f = new BinaryReader(new MemoryStream(data));
+
+            // skip
+            f.ReadBytes(0x0a);
+
+            // unpack BoPa
+            uint uncompressedSize = Utils.SwapEndianess(f.ReadUInt32());
+            uint compressedSize = Utils.SwapEndianess(f.ReadUInt32());
+            var uncompressedData = new byte[uncompressedSize];
+            var compressedData = f.ReadBytes((int)compressedSize);
+
+            Utils.UnpackBoPa(compressedData, compressedSize, uncompressedData, uncompressedSize);
+
+            return uncompressedData;
+        }
+
         public static string ExtractString(BinaryReader br)
         {
             var sb = new StringBuilder();

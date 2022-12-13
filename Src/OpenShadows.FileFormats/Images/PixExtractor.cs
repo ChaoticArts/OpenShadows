@@ -10,7 +10,7 @@ namespace OpenShadows.FileFormats.Images
 {
 	public static class PixExtractor
 	{
-		public static ImageData ExtractImage(byte[] data, Palette palette)
+        public static ImageData ExtractImage(byte[] data, Palette palette)
 		{
 			using var f = new BinaryReader(new MemoryStream(data));
 

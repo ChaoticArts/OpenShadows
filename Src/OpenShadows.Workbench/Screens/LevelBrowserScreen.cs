@@ -221,6 +221,10 @@ namespace OpenShadows.Workbench.Screens
                 {
                     DrawDscLevelEntry(window);
                 }
+                else if (string.Equals(entry.Name.End(3), "PPD", StringComparison.Ordinal))
+                {
+                    DrawPpdLevelEntry(window);
+                }
                 else
                 {
                     DrawGenericLevelEntry(window);
@@ -242,7 +246,7 @@ namespace OpenShadows.Workbench.Screens
             ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
             ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
 
-            if (ImGui.Begin("##entry_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            if (ImGui.Begin("##levelentry_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
             {
                 AlfModule levelModule = Alf.Modules[SelectedEntry];
                 AlfEntry selectedEntry = levelModule.Entries[SelectedLevelEntry];
@@ -256,6 +260,35 @@ namespace OpenShadows.Workbench.Screens
                             "extract");
                     fn = Path.Combine(fn, selectedEntry.Name);
                     File.WriteAllBytes(fn, selectedEntry.GetContents());
+                }
+
+                ImGui.End();
+            }
+        }
+
+        private void DrawPpdLevelEntry(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
+
+            if (ImGui.Begin("##ppd_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfEntry selectedEntry = levelModule.Entries[SelectedLevelEntry];
+
+                ImGui.Text($"PPD: {selectedEntry.Name}");
+                if (ImGui.Button("Extract"))
+                {
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, selectedEntry.Name);
+                    var uncompData = PpdExtractor.ExtractPpd(selectedEntry.GetContents());
+                    File.WriteAllBytes(fn, uncompData);
                 }
 
                 ImGui.End();
@@ -374,19 +407,19 @@ namespace OpenShadows.Workbench.Screens
                         Path.Combine(
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract");
-                    fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(Alf.Entries[SelectedEntry].Name) + ".png");
+                    fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(selectedTextureEntry.Name) + ".png");
                     var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
                     img.Save(fn);
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("Extract raw"))
+                if (ImGui.Button("Extract uncompressed"))
                 {
-                    byte[] fileData = selectedTextureEntry.GetContents();
+                    byte[] fileData = Utils.UnpackBoPaCompressedData(selectedTextureEntry.GetContents());
                     string fn =
                         Path.Combine(
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract");
-                    fn = Path.Combine(fn, Alf.Entries[SelectedEntry].Name);
+                    fn = Path.Combine(fn, selectedTextureEntry.Name);
                     File.WriteAllBytes(fn, fileData);
                 }
             }
