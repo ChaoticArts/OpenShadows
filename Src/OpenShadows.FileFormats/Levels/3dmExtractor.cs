@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 using static OpenShadows.Data.Game.Level;
 
@@ -100,11 +101,14 @@ namespace OpenShadows.FileFormats.Levels
             }
 
             // Read materials
+            Dictionary<uint, ObjectMaterial> materialLookup = new Dictionary<uint, ObjectMaterial>();
             f.BaseStream.Position = materialTableOffset;
             for (int i = 0; i < materialCount; i++)
             {
                 ObjectMaterial mat = new ObjectMaterial();
                 result.Materials.Add(mat);
+
+                materialLookup.Add((uint)f.BaseStream.Position, mat);
 
                 int stringLookup = f.ReadInt32();
                 string name = "unknown";
@@ -175,12 +179,12 @@ namespace OpenShadows.FileFormats.Levels
                 levelObject.BoundingBox.MaxY = f.ReadInt32();
                 levelObject.BoundingBox.MaxZ = f.ReadInt32();
 
-                uint offset = f.ReadUInt32();
+                uint dataOffset = f.ReadUInt32();
                 uint vertexBytes = f.ReadUInt32();
 
                 uint quadsOffset = f.ReadUInt32();
                 uint materialsOffset = f.ReadUInt32();
-                uint materials2Offset = f.ReadUInt32();
+                uint quadMaterialsOffset = f.ReadUInt32();
 
                 // Unknown
                 f.ReadBytes(48);
@@ -190,7 +194,7 @@ namespace OpenShadows.FileFormats.Levels
                 try
                 {
                     // Read object data
-                    f.BaseStream.Position = offset;
+                    f.BaseStream.Position = dataOffset;
 
                     // Read vertices
                     LevelObjectVertex[] vertices = new LevelObjectVertex[levelObject.VertexCount];
@@ -205,7 +209,7 @@ namespace OpenShadows.FileFormats.Levels
                     }
                     levelObject.Vertices = vertices;
 
-                    f.BaseStream.Position = offset + quadsOffset;
+                    f.BaseStream.Position = dataOffset + quadsOffset;
                     // "Faces" are actually quads
                     LevelObjectQuad[] quads = new LevelObjectQuad[levelObject.QuadCount];
                     for (int j = 0; j < levelObject.QuadCount; j++)
@@ -215,15 +219,64 @@ namespace OpenShadows.FileFormats.Levels
                         {
                             quads[j].Indices[k] = f.ReadUInt16();
                             quads[j].Indices2[k] = f.ReadUInt16();
-                            quads[j].Extra1[k] = f.ReadInt32();
-                            quads[j].Extra2[k] = f.ReadInt32();
+                            quads[j].Extras1[k] = f.ReadInt32();
+                            quads[j].Extras2[k] = f.ReadInt32();
                         }
                     }
                     levelObject.Quads = quads;
                     levelObject.CreateTriangles();
 
                     // Read materials
-                    f.BaseStream.Position = offset + materialsOffset;
+                    f.BaseStream.Position = dataOffset + materialsOffset;
+                    for (int j = 0; j < levelObject.QuadCount; j++)
+                    {
+                        ushort _unk = f.ReadUInt16();
+
+                        ushort vertex1 = f.ReadUInt16();
+                        ushort vertex2 = f.ReadUInt16();
+                        ushort vertex3 = f.ReadUInt16();
+                        ushort vertex4 = f.ReadUInt16();
+
+                        uint _unk2 = f.ReadUInt32();
+                        uint _unk3 = f.ReadUInt32();
+
+                        vertex1 = f.ReadUInt16();
+                        vertex2 = f.ReadUInt16();
+                        vertex3 = f.ReadUInt16();
+                        vertex4 = f.ReadUInt16();
+
+                        uint _unk4 = f.ReadUInt32();
+                        uint _unk5 = f.ReadUInt32();
+
+                        ushort _unk6 = f.ReadUInt16();
+
+                        uint quadIndex = f.ReadUInt32();
+                        uint materialOffset = f.ReadUInt32();
+                        uint unk = f.ReadUInt32();
+
+                        if (materialLookup.ContainsKey(materialOffset))
+                        {
+                            var material = materialLookup[materialOffset];
+                            quads[quadIndex].MaterialOffset = materialOffset;
+                            quads[quadIndex].Material = material;
+                        }
+                    }
+
+                    // Unknown additional materials (the following code block is not correct)
+                    f.BaseStream.Position = dataOffset + quadMaterialsOffset;
+                    /*for (int j = 0; j < unknown_length; j++)
+                    {
+                        uint index = f.ReadUInt32();
+                        uint materialOffset = f.ReadUInt32();
+                        uint unk = f.ReadUInt32();
+
+                        if (materialLookup.ContainsKey(materialOffset)) 
+                        { 
+                            var material = materialLookup[materialOffset];
+                            quads[index].MaterialOffset = materialOffset;
+                            quads[index].Material = material;
+                        }
+                    }*/
                 }
                 catch (Exception ex)
                 {
