@@ -91,6 +91,52 @@ namespace OpenShadows.FileFormats.Levels
                 result.StringTable.Add(lookupPosition, s);
             }
 
+            // Read ???
+            f.BaseStream.Position = unkTableOffset;
+            for (int i = 0; i < unkCount; i++)
+            {
+                // Unknown, but each entry is 88 bytes in size
+                byte[] data = f.ReadBytes(88);
+            }
+
+            // Read materials
+            f.BaseStream.Position = materialTableOffset;
+            for (int i = 0; i < materialCount; i++)
+            {
+                ObjectMaterial mat = new ObjectMaterial();
+                result.Materials.Add(mat);
+
+                int stringLookup = f.ReadInt32();
+                string name = "unknown";
+                if (result.StringTable.ContainsKey(stringLookup))
+                {
+                    name = result.StringTable[stringLookup];
+                }
+                mat.Name = name;
+
+                f.ReadBytes(2);
+
+                mat.Alpha = f.ReadUInt16();
+
+                f.ReadBytes(4);
+                ushort unk = f.ReadUInt16();
+
+                f.ReadBytes(30);
+
+                stringLookup = f.ReadInt32();
+                name = "unknown";
+                if (result.StringTable.ContainsKey(stringLookup))
+                {
+                    name = result.StringTable[stringLookup];
+                }
+                mat.TextureName = name;
+
+                f.ReadInt32();
+            }
+
+            // Read object data
+            f.BaseStream.Position = objectDataOffset;
+
             // Read object able
             f.BaseStream.Position = objectTableOffset;
             for (int i = 0; i < objectCount; i++)
@@ -139,15 +185,6 @@ namespace OpenShadows.FileFormats.Levels
                 // Unknown
                 f.ReadBytes(48);
             }
-
-            // Read ???
-            f.BaseStream.Position = unkTableOffset;
-
-            // Read materials
-            f.BaseStream.Position = materialTableOffset;
-
-            // Read object data
-            f.BaseStream.Position = objectDataOffset;
 
             return result;
         }

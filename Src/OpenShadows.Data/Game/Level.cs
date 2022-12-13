@@ -44,8 +44,24 @@ namespace OpenShadows.Data.Game
             }
         }
 
+        public class ObjectMaterial
+        {
+            public string Name;
+
+            public ushort Alpha;
+
+            public string TextureName;
+
+            public override string ToString()
+            {
+                return $"{Name} => {TextureName} (Alpha: {Alpha})";
+            }
+        }
+
         public Dictionary<int, string> StringTable = new Dictionary<int, string>();
 
         public List<LevelObject> Objects = new List<LevelObject>();
+
+        public List<ObjectMaterial> Materials = new List<ObjectMaterial>();
     }
 }

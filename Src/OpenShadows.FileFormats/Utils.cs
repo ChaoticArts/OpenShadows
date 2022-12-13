@@ -40,6 +40,23 @@ namespace OpenShadows.FileFormats
             return uncompressedData;
         }
 
+        public static ushort Crc16(byte[] data)
+        {
+            ushort wCRC = 0;
+            for (int i = 0; i < data.Length; i++)
+            {
+                wCRC ^= (ushort)(data[i] << 8);
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((wCRC & 0x8000) != 0)
+                        wCRC = (ushort)((wCRC << 1) ^ 0x1021);
+                    else
+                        wCRC <<= 1;
+                }
+            }
+            return wCRC;
+        }
+
         public static string ExtractString(BinaryReader br)
         {
             var sb = new StringBuilder();

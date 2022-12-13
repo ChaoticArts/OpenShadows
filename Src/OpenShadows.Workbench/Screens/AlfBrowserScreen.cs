@@ -152,6 +152,8 @@ namespace OpenShadows.Workbench.Screens
                 ImGui.Text($"Filename: {entry.Name}");
                 ImGui.SameLine();
                 ImGui.Text($"   Type: {FormatHelper.GetFileType(entry.Name.End(3))}");
+                ushort crc16 = Utils.Crc16(entry.GetContents());
+                ImGui.Text($"   CRC16: {BitConverter.ToString(new byte[] { (byte)(crc16 >> 8), (byte)crc16 })} ({crc16})");
 
                 if (ImGui.Button("Extract"))
                 {
