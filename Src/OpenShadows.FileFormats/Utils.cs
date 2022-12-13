@@ -74,7 +74,7 @@ namespace OpenShadows.FileFormats
                         break;
                 }
             }
-            while (b != 0x00);
+            while (b != 0x00 && br.BaseStream.Position < br.BaseStream.Length);
 
             return sb.ToString();
         }

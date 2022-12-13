@@ -16,126 +16,129 @@ using Veldrid;
 using Veldrid.Sdl2;
 using BinaryReader = System.IO.BinaryReader;
 using OpenShadows.FileFormats.Levels;
+using OpenShadows.FileFormats.Text;
 
 namespace OpenShadows.Workbench.Screens
 {
-	public class LevelBrowserScreen : IScreen
-	{
-		public string Title { get; } = "Level Browser";
+    public class LevelBrowserScreen : IScreen
+    {
+        public string Title { get; } = "Level Browser";
 
-		private AlfArchive Alf;
+        private AlfArchive Alf;
 
-		private string ReadableAlfPath = "DATA\\DUNGEON.ALF";
+        private string ReadableAlfPath = "DATA\\DUNGEON.ALF";
 
-		private int SelectedEntry = -1;
+        private int SelectedEntry = -1;
 
-		private int SelectedTexture = -1;
+        private int SelectedTexture = -1;
 
-		private ImGuiRenderer ImGuiRenderer;
+        private int SelectedLevelEntry = -1;
 
-		private GraphicsDevice Gd;
+        private ImGuiRenderer ImGuiRenderer;
 
-		public void Update(float dt)
-		{
-			// explicitly do nothing
-		}
+        private GraphicsDevice Gd;
 
-		public void Render(Sdl2Window window, GraphicsDevice gd, ImGuiRenderer imGuiRenderer)
-		{
-			Gd = gd;
-			ImGuiRenderer = imGuiRenderer;
+        public void Update(float dt)
+        {
+            // explicitly do nothing
+        }
 
-			Vector2 pos = Vector2.One;
-			pos.Y = 18;
-			ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
-			ImGui.SetNextWindowSize(new Vector2(500, window.Height - 18), ImGuiCond.Always);
+        public void Render(Sdl2Window window, GraphicsDevice gd, ImGuiRenderer imGuiRenderer)
+        {
+            Gd = gd;
+            ImGuiRenderer = imGuiRenderer;
 
-			if (ImGui.Begin("##level_browser", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
-			{
-				ImGui.PushItemWidth(-1);
-				ImGui.InputText("##alf_path", ref ReadableAlfPath, 1000, Alf != null ? ImGuiInputTextFlags.ReadOnly : 0);
-				ImGui.PopItemWidth();
+            Vector2 pos = Vector2.One;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(500, window.Height - 18), ImGuiCond.Always);
 
-				if (Alf == null)
-				{
-					if (ImGui.Button("Open ALF") && File.Exists(ReadableAlfPath))
-					{
-						OpenAlf();
-					}
-				}
-				else if (ImGui.Button($"Close {Path.GetFileName(ReadableAlfPath)}"))
-				{
-					CloseAlf();
-				}
+            if (ImGui.Begin("##level_browser", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                ImGui.PushItemWidth(-1);
+                ImGui.InputText("##alf_path", ref ReadableAlfPath, 1000, Alf != null ? ImGuiInputTextFlags.ReadOnly : 0);
+                ImGui.PopItemWidth();
 
-				if (Alf != null)
-				{
-					DrawContentList();
+                if (Alf == null)
+                {
+                    if (ImGui.Button("Open ALF") && File.Exists(ReadableAlfPath))
+                    {
+                        OpenAlf();
+                    }
+                }
+                else if (ImGui.Button($"Close {Path.GetFileName(ReadableAlfPath)}"))
+                {
+                    CloseAlf();
+                }
 
-					if (SelectedEntry != -1)
-					{
-						DrawEntryWindow(window);
-					}
-				}
-			}
-		}
+                if (Alf != null)
+                {
+                    DrawContentList();
 
-		private void DrawContentList()
-		{
-			ImGui.Separator();
+                    if (SelectedEntry != -1)
+                    {
+                        DrawEntryWindow(window);
+                    }
+                }
+            }
+        }
 
-			ImGui.BeginChild("##file_list");
+        private void DrawContentList()
+        {
+            ImGui.Separator();
 
-			ImGui.Columns(3);
-			ImGui.Text("idx"); ImGui.NextColumn();
-			ImGui.Text("level"); ImGui.NextColumn();
-			ImGui.Text("textures"); ImGui.NextColumn();
-			ImGui.Separator();
+            ImGui.BeginChild("##file_list");
 
-			ImGui.SetColumnWidth(0, 50.0f);
+            ImGui.Columns(3);
+            ImGui.Text("idx"); ImGui.NextColumn();
+            ImGui.Text("level"); ImGui.NextColumn();
+            ImGui.Text("textures"); ImGui.NextColumn();
+            ImGui.Separator();
 
-			for (int i = 0; i < Alf.Modules.Count - 1; i += 2)
-			{
-				AlfModule levelMod   = Alf.Modules[i];
+            ImGui.SetColumnWidth(0, 50.0f);
 
-				if (levelMod.Name == "FINAL03")
-				{
-					continue;
-				}
+            for (int i = 0; i < Alf.Modules.Count - 1; i += 2)
+            {
+                AlfModule levelMod = Alf.Modules[i];
 
-				AlfModule textureMod = Alf.Modules[i + 1];
+                if (levelMod.Name == "FINAL03")
+                {
+                    continue;
+                }
 
-				if (ImGui.Selectable(i.ToString(), i == SelectedEntry, ImGuiSelectableFlags.SpanAllColumns))
-				{
-					SelectEntry(i);
-				}
-				ImGui.NextColumn();
-				ImGui.Text(levelMod.Name);
-				ImGui.NextColumn();
-				ImGui.Text(textureMod.Name);
-				ImGui.NextColumn();
-			}
+                AlfModule textureMod = Alf.Modules[i + 1];
 
-			ImGui.Columns(1);
+                if (ImGui.Selectable(i.ToString(), i == SelectedEntry, ImGuiSelectableFlags.SpanAllColumns))
+                {
+                    SelectEntry(i);
+                }
+                ImGui.NextColumn();
+                ImGui.Text(levelMod.Name);
+                ImGui.NextColumn();
+                ImGui.Text(textureMod.Name);
+                ImGui.NextColumn();
+            }
 
-			ImGui.EndChild();
-		}
+            ImGui.Columns(1);
 
-		private void DrawEntryWindow(Sdl2Window window)
-		{
-			Vector2 pos = Vector2.One;
-			pos.X = 500;
-			pos.Y = 18;
-			ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
-			ImGui.SetNextWindowSize(new Vector2(350.0f, window.Height - 18), ImGuiCond.Always);
+            ImGui.EndChild();
+        }
 
-			if (ImGui.Begin("##entry_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
-			{
-				AlfModule levelModule   = Alf.Modules[SelectedEntry];
-				AlfModule textureModule = Alf.Modules[SelectedEntry + 1];
+        private void DrawEntryWindow(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(350.0f, window.Height - 18), ImGuiCond.Always);
 
-				ImGui.Text($"Level: {levelModule.Name}");				
-				ImGui.Text($"3D-Definition: {levelModule.Entries.First(e => e.Name.EndsWith("3DM")).Name}");
+            if (ImGui.Begin("##entry_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfModule textureModule = Alf.Modules[SelectedEntry + 1];
+
+                ImGui.Text($"Level: {levelModule.Name}");
+                ImGui.Text($"3D-Definition: {levelModule.Entries.First(e => e.Name.EndsWith("3DM")).Name}");
                 ImGui.SameLine();
                 if (ImGui.Button("Extract Level"))
                 {
@@ -145,17 +148,17 @@ namespace OpenShadows.Workbench.Screens
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract");
                     fn = Path.Combine(fn, entry.Name);
-					var compressedData = entry.GetContents();
-					var uncompressedData = Level3dmExtractor.UncompressLevel(compressedData);
+                    var compressedData = entry.GetContents();
+                    var uncompressedData = Level3dmExtractor.UncompressLevel(compressedData);
                     File.WriteAllBytes(fn, uncompressedData);
 
-					var level = Level3dmExtractor.ExtractLevel(uncompressedData);
+                    var level = Level3dmExtractor.ExtractLevel(uncompressedData);
                 }
                 ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
                 ImGui.SameLine();
                 if (ImGui.Button("Extract Palette"))
                 {
-					var entry = levelModule.Entries.First(e => e.Name.EndsWith("PAL"));
+                    var entry = levelModule.Entries.First(e => e.Name.EndsWith("PAL"));
                     string fn =
                         Path.Combine(
                             Path.GetDirectoryName(ReadableAlfPath),
@@ -166,180 +169,297 @@ namespace OpenShadows.Workbench.Screens
 
                 ImGui.BeginChild("##text_list");
 
-				ImGui.Columns(2);
-				ImGui.Text("idx"); ImGui.NextColumn();
-				ImGui.Text("Name"); ImGui.NextColumn();
-				ImGui.Separator();
+                ImGui.Columns(2);
+                ImGui.Text("idx"); ImGui.NextColumn();
+                ImGui.Text("Name"); ImGui.NextColumn();
+                ImGui.Separator();
 
-				ImGui.SetColumnWidth(0, 50.0f);
+                ImGui.SetColumnWidth(0, 50.0f);
 
-				for (int i = 0; i < textureModule.Entries.Count; i++)
-				{
-					if (ImGui.Selectable(i.ToString(), i == SelectedTexture, ImGuiSelectableFlags.SpanAllColumns))
-					{
-						SelectTexture(i);
-					}
-					ImGui.NextColumn();
-					ImGui.Text(textureModule.Entries[i].Name); ImGui.NextColumn();
-				}
-
-				ImGui.Columns(1);
-
-				ImGui.EndChild();
-
-				ImGui.End();
-			}
-
-			if (SelectedTexture != -1)
-			{
-				DrawTextureWindow(window);
-			}
-		}
-
-		private Texture CurrentImage;
-
-		private bool HasImage;
-
-		private uint ZoomFactor = 1;
-
-		private void DrawTextureWindow(Sdl2Window window)
-		{
-			Vector2 pos = Vector2.One;
-			pos.X = 500 + 350 - 1;
-			pos.Y = 18;
-			ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
-			ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
-
-			if (ImGui.Begin("##texture_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
-			{
-				AlfModule levelModule     = Alf.Modules[SelectedEntry];
-				AlfModule textureModule   = Alf.Modules[SelectedEntry + 1];
-				AlfEntry  selectedTexture = textureModule.Entries[SelectedTexture];
-
-				ImGui.Text($"Texture: {selectedTexture.Name}");
-
-				if (!HasImage && ImGui.Button("View me"))
-				{
-					byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
-					var br = new BinaryReader(new MemoryStream(paletteData));
-					Palette p = Palette.LoadFromPal(br);
-
-                    byte[] imageData = selectedTexture.GetContents();
-					ImageData temp = PixExtractor.ExtractImage(imageData, p);
-
-					Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
-					{
-						Height      = (uint)temp.Height,
-						Width       = (uint)temp.Width,
-						Format      = PixelFormat.R8_G8_B8_A8_UNorm_SRgb,
-						Type        = TextureType.Texture2D,
-						Usage       = TextureUsage.Sampled,
-						MipLevels   = 1,
-						Depth       = 1,
-						ArrayLayers = 1
-					});
-
-					GCHandle pinnedArray = GCHandle.Alloc(temp.PixelData, GCHandleType.Pinned);
-					IntPtr   pointer     = pinnedArray.AddrOfPinnedObject();
-
-					Gd.UpdateTexture(img, pointer, (uint)temp.PixelData.Length, 0, 0, 0, (uint)temp.Width, (uint)temp.Height, 1, 0, 0);
-
-					pinnedArray.Free();
-
-					CurrentImage = img;
-					HasImage     = true;
-					ZoomFactor   = 1;
-				}
-
-                if (HasImage)
+                for (int i = 0; i < textureModule.Entries.Count; i++)
                 {
-					if (ImGui.Button("Extract as PNG"))
-					{
-                        byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
-                        var br = new BinaryReader(new MemoryStream(paletteData));
-                        Palette p = Palette.LoadFromPal(br);
-
-                        byte[] imageData = selectedTexture.GetContents();
-                        ImageData temp = PixExtractor.ExtractImage(imageData, p);
-
-                        string fn =
-                            Path.Combine(
-                                Path.GetDirectoryName(ReadableAlfPath),
-                                "extract");
-                        fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(Alf.Entries[SelectedEntry].Name) + ".png");
-                        var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
-                        img.Save(fn);
-                    }
-					ImGui.SameLine();
-                    if (ImGui.Button("Extract raw"))
+                    if (ImGui.Selectable(i.ToString(), i == SelectedTexture, ImGuiSelectableFlags.SpanAllColumns))
                     {
-                        byte[] fileData = selectedTexture.GetContents();
-                        string fn =
-                            Path.Combine(
-                                Path.GetDirectoryName(ReadableAlfPath),
-                                "extract");
-                        fn = Path.Combine(fn, Alf.Entries[SelectedEntry].Name);
-                        File.WriteAllBytes(fn, fileData);
+                        SelectTexture(i);
                     }
+                    ImGui.NextColumn();
+                    ImGui.Text(textureModule.Entries[i].Name); ImGui.NextColumn();
                 }
 
-                if (HasImage && CurrentImage != null)
-				{
-					if (ImGui.Button("Close me"))
-					{
-						HasImage = false;
-						CurrentImage.Dispose();
-					}
+                for (int i = 0; i < levelModule.Entries.Count; i++)
+                {
+                    if (ImGui.Selectable((textureModule.Entries.Count + i).ToString(),
+                        i == SelectedLevelEntry, ImGuiSelectableFlags.SpanAllColumns))
+                    {
+                        SelectLevelEntry(i);
+                    }
+                    ImGui.NextColumn();
+                    ImGui.Text(levelModule.Entries[i].Name); ImGui.NextColumn();
+                }
 
-					ImGui.SameLine();
+                ImGui.Columns(1);
 
-					if (ImGui.Button("+"))
-					{
-						ZoomFactor++;
-					}
+                ImGui.EndChild();
 
-					ImGui.SameLine();
+                ImGui.End();
+            }
 
-					if (ImGui.Button("-"))
-					{
-						ZoomFactor = ZoomFactor == 1 ? 1 : ZoomFactor - 1;
-					}
+            if (SelectedTexture != -1)
+            {
+                DrawTextureWindow(window);
+            }
+            if (SelectedLevelEntry != -1)
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfEntry entry = levelModule.Entries[SelectedLevelEntry];
 
-					ImGui.Text($"Image Size: {CurrentImage.Width}x{CurrentImage.Height}");
+                if (string.Equals(entry.Name.End(3), "PIX", StringComparison.Ordinal))
+                {
+                    DrawTextureWindowLevel(window);
+                }
+                else if (string.Equals(entry.Name.End(3), "DSC", StringComparison.Ordinal))
+                {
+                    DrawDscLevelEntry(window);
+                }
+                else
+                {
+                    DrawGenericLevelEntry(window);
+                }
+            }
+        }
 
-					ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(Gd.ResourceFactory, CurrentImage), new Vector2(CurrentImage.Width * ZoomFactor, CurrentImage.Height * ZoomFactor));
-				}
+        private Texture CurrentImage;
 
-				ImGui.End();
-			}
-		}
+        private bool HasImage;
 
-		private void OpenAlf()
-		{
-			Alf = new AlfArchive(ReadableAlfPath);
-			SelectedEntry = -1;
-		}
+        private uint ZoomFactor = 1;
 
-		private void CloseAlf()
-		{
-			Alf = null;
-		}
+        private void DrawGenericLevelEntry(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
 
-		private void SelectEntry(int id)
-		{
-			SelectedEntry = id;
-			SelectedTexture = -1;
-		}
+            if (ImGui.Begin("##entry_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfEntry selectedEntry = levelModule.Entries[SelectedLevelEntry];
 
-		private void SelectTexture(int id)
-		{
-			SelectedTexture = id;
+                ImGui.Text($"Entry: {selectedEntry.Name}");
+                if (ImGui.Button("Extract"))
+                {
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, selectedEntry.Name);
+                    File.WriteAllBytes(fn, selectedEntry.GetContents());
+                }
 
-			if (HasImage || CurrentImage != null)
-			{
-				HasImage = false;
-				CurrentImage?.Dispose();
-			}
-		}
-	}
+                ImGui.End();
+            }
+        }
+
+        private void DrawDscLevelEntry(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
+
+            if (ImGui.Begin("##dsc_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfEntry selectedEntry = levelModule.Entries[SelectedLevelEntry];
+
+                ImGui.Text($"DSC: {selectedEntry.Name}");
+
+                var extracted = DscExtractor.ExtractDsc(selectedEntry.GetContents());
+                ImGui.TextUnformatted(extracted);
+
+                ImGui.End();
+            }
+        }
+
+        private void DrawTextureWindow(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
+
+            if (ImGui.Begin("##texture_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfModule textureModule = Alf.Modules[SelectedEntry + 1];
+                AlfEntry selectedTexture = textureModule.Entries[SelectedTexture];
+                DrawTextureEntry(levelModule, selectedTexture);
+
+                ImGui.End();
+            }
+        }
+
+        private void DrawTextureWindowLevel(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
+
+            if (ImGui.Begin("##texture_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfModule textureModule = Alf.Modules[SelectedEntry + 1];
+                AlfEntry selectedTexture = levelModule.Entries[SelectedLevelEntry];
+                DrawTextureEntry(levelModule, selectedTexture);
+
+                ImGui.End();
+            }
+        }
+
+        private void DrawTextureEntry(AlfModule levelModule, AlfEntry selectedTextureEntry)
+        {
+            ImGui.Text($"Texture: {selectedTextureEntry.Name}");
+
+            if (!HasImage && ImGui.Button("View me"))
+            {
+                byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
+                var br = new BinaryReader(new MemoryStream(paletteData));
+                Palette p = Palette.LoadFromPal(br);
+
+                byte[] imageData = selectedTextureEntry.GetContents();
+                ImageData temp = PixExtractor.ExtractImage(imageData, p);
+
+                Texture img = Gd.ResourceFactory.CreateTexture(new TextureDescription
+                {
+                    Height = (uint)temp.Height,
+                    Width = (uint)temp.Width,
+                    Format = PixelFormat.R8_G8_B8_A8_UNorm_SRgb,
+                    Type = TextureType.Texture2D,
+                    Usage = TextureUsage.Sampled,
+                    MipLevels = 1,
+                    Depth = 1,
+                    ArrayLayers = 1
+                });
+
+                GCHandle pinnedArray = GCHandle.Alloc(temp.PixelData, GCHandleType.Pinned);
+                IntPtr pointer = pinnedArray.AddrOfPinnedObject();
+
+                Gd.UpdateTexture(img, pointer, (uint)temp.PixelData.Length, 0, 0, 0, (uint)temp.Width, (uint)temp.Height, 1, 0, 0);
+
+                pinnedArray.Free();
+
+                CurrentImage = img;
+                HasImage = true;
+                ZoomFactor = 1;
+            }
+
+            if (HasImage)
+            {
+                if (ImGui.Button("Extract as PNG"))
+                {
+                    byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
+                    var br = new BinaryReader(new MemoryStream(paletteData));
+                    Palette p = Palette.LoadFromPal(br);
+
+                    byte[] imageData = selectedTextureEntry.GetContents();
+                    ImageData temp = PixExtractor.ExtractImage(imageData, p);
+
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, Path.GetFileNameWithoutExtension(Alf.Entries[SelectedEntry].Name) + ".png");
+                    var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
+                    img.Save(fn);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button("Extract raw"))
+                {
+                    byte[] fileData = selectedTextureEntry.GetContents();
+                    string fn =
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract");
+                    fn = Path.Combine(fn, Alf.Entries[SelectedEntry].Name);
+                    File.WriteAllBytes(fn, fileData);
+                }
+            }
+
+            if (HasImage && CurrentImage != null)
+            {
+                if (ImGui.Button("Close me"))
+                {
+                    HasImage = false;
+                    CurrentImage.Dispose();
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("+"))
+                {
+                    ZoomFactor++;
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("-"))
+                {
+                    ZoomFactor = ZoomFactor == 1 ? 1 : ZoomFactor - 1;
+                }
+
+                ImGui.Text($"Image Size: {CurrentImage.Width}x{CurrentImage.Height}");
+
+                ImGui.Image(ImGuiRenderer.GetOrCreateImGuiBinding(Gd.ResourceFactory, CurrentImage), new Vector2(CurrentImage.Width * ZoomFactor, CurrentImage.Height * ZoomFactor));
+            }
+        }
+
+        private void OpenAlf()
+        {
+            Alf = new AlfArchive(ReadableAlfPath);
+            SelectedEntry = -1;
+            SelectedLevelEntry = -1;
+        }
+
+        private void CloseAlf()
+        {
+            Alf = null;
+        }
+
+        private void SelectEntry(int id)
+        {
+            SelectedEntry = id;
+            SelectedTexture = -1;
+            SelectedLevelEntry = -1;
+        }
+
+        private void SelectTexture(int id)
+        {
+            SelectedLevelEntry = -1;
+            SelectedTexture = id;
+
+            if (HasImage || CurrentImage != null)
+            {
+                HasImage = false;
+                CurrentImage?.Dispose();
+            }
+        }
+
+        private void SelectLevelEntry(int id)
+        {
+            SelectedTexture = -1;
+            SelectedLevelEntry = id;
+
+            if (HasImage || CurrentImage != null)
+            {
+                HasImage = false;
+                CurrentImage?.Dispose();
+            }
+        }
+    }
 }
