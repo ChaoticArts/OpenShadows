@@ -38,9 +38,19 @@ namespace OpenShadows.Workbench.Screens
 
         private GraphicsDevice Gd;
 
+        private bool alreadyTriedOpeningDefaultAlf = false;
+
         public void Update(float dt)
         {
             // explicitly do nothing
+
+            if (alreadyTriedOpeningDefaultAlf == false &&
+                Alf == null && 
+                File.Exists(ReadableAlfPath))
+            {
+                alreadyTriedOpeningDefaultAlf = true;
+                OpenAlf();
+            }
         }
 
         public void Render(Sdl2Window window, GraphicsDevice gd, ImGuiRenderer imGuiRenderer)
@@ -159,6 +169,12 @@ namespace OpenShadows.Workbench.Screens
                             "extract",
                             Path.GetFileNameWithoutExtension(entry.Name)),
                         0.00001f);
+                    level.DumpToObjIndividual(
+                        Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract",
+                            Path.GetFileNameWithoutExtension(entry.Name)),
+                        0.00001f);                    
                 }
                 ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
                 ImGui.SameLine();

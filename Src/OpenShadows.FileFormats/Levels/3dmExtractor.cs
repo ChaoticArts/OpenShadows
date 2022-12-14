@@ -1,7 +1,9 @@
 ﻿using OpenShadows.Data.Game;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Runtime.Serialization;
 using System.Text;
 using static OpenShadows.Data.Game.Level;
@@ -155,15 +157,14 @@ namespace OpenShadows.FileFormats.Levels
 
                 LevelObject levelObject = new LevelObject();
                 levelObject.Name = name;
-                result.Objects.Add(levelObject);
 
                 levelObject.VertexCount = f.ReadUInt16();
-                levelObject.QuadCount = f.ReadUInt16();
+                ushort primitiveCount1 = f.ReadUInt16();
 
-                f.ReadInt16();
-                f.ReadInt16();
-                f.ReadInt16();
-                f.ReadInt16();
+                ushort surfaceVertexCount = f.ReadUInt16();
+                levelObject.QuadCount = f.ReadUInt16();
+                ushort vertexCount3 = f.ReadUInt16();
+                ushort quadCount3 = f.ReadUInt16();
 
                 levelObject.BoundingBox.CenterX = f.ReadInt32();
                 levelObject.BoundingBox.CenterY = f.ReadInt32();
@@ -190,93 +191,247 @@ namespace OpenShadows.FileFormats.Levels
                 f.ReadBytes(48);
                 long curPos = f.BaseStream.Position;
 
+                // ============================
+                //  Debugging stuff
+                bool runTests = false;
+                List<string> objUnderTest = new List<string>();
+                objUnderTest.Add("10N9999_B1");
+                objUnderTest.Add("04N9999_MH");
+                objUnderTest.Add("11N9999_TP");
+                objUnderTest.Add("01N9999_21");
+                objUnderTest.Add("01N9999_22");
+                objUnderTest.Add("36N9999_08");                
+
+                if (runTests)
+                {
+                    if (objUnderTest.Contains(levelObject.Name) == false)
+                    {
+                        continue;
+                    }
+                }
+                // ============================
+
+                result.Objects.Add(levelObject);
+
                 // Read faces
                 try
                 {
+                    Console.WriteLine("Name: " + levelObject.Name);
+                    Console.WriteLine($"{nameof(levelObject.VertexCount)}: {levelObject.VertexCount}");
+                    Console.WriteLine($"{nameof(primitiveCount1)}: {primitiveCount1}");
+                    Console.WriteLine($"{nameof(surfaceVertexCount)}: {surfaceVertexCount}");
+                    Console.WriteLine($"{nameof(levelObject.QuadCount)}: {levelObject.QuadCount}");
+                    Console.WriteLine($"{nameof(vertexCount3)}: {vertexCount3}");
+                    Console.WriteLine($"{nameof(quadCount3)}: {quadCount3}");
+
                     // Read object data
                     f.BaseStream.Position = dataOffset;
 
-                    // Read vertices
-                    LevelObjectVertex[] vertices = new LevelObjectVertex[levelObject.VertexCount];
+                    // Read vertex positions
+                    LevelObjectVector[] vertexPositions = new LevelObjectVector[levelObject.VertexCount];
                     for (int j = 0; j < levelObject.VertexCount; j++)
                     {
-                        vertices[j] = new LevelObjectVertex()
+                        int x = f.ReadInt32();
+                        int y = f.ReadInt32();
+                        int z = f.ReadInt32();
+                        vertexPositions[j] = new LevelObjectVector()
                         {
-                            X = f.ReadInt32(),
-                            Y = f.ReadInt32(),
-                            Z = f.ReadInt32()
+                            X = x,
+                            Y = y,
+                            Z = z
                         };
                     }
-                    levelObject.Vertices = vertices;
-
-                    f.BaseStream.Position = dataOffset + quadsOffset;
-                    // "Faces" are actually quads
-                    LevelObjectQuad[] quads = new LevelObjectQuad[levelObject.QuadCount];
-                    for (int j = 0; j < levelObject.QuadCount; j++)
+                    for (int j = 0; j < primitiveCount1; j++)
                     {
-                        quads[j] = new LevelObjectQuad();
-                        for (int k = 0; k < 4; k++)
-                        {
-                            quads[j].Indices[k] = f.ReadUInt16();
-                            quads[j].Indices2[k] = f.ReadUInt16();
-                            quads[j].Extras1[k] = f.ReadInt32();
-                            quads[j].Extras2[k] = f.ReadInt32();
-                        }
+                        /*ushort x = f.ReadUInt16();
+                        ushort y = f.ReadUInt16();
+                        ushort z = f.ReadUInt16();
+                        ushort x2 = f.ReadUInt16();
+                        ushort y2 = f.ReadUInt16();
+                        ushort z2 = f.ReadUInt16();
+                        Console.WriteLine($"{j}: {x},{y},{z},{x2},{y2},{z2}");*/
+
+                        /*int a = f.ReadUInt16();
+                        int b = f.ReadUInt16();
+                        int y = f.ReadInt32();
+                        int z = f.ReadInt32();
+                        Console.WriteLine($"{j}: {a},{b},{y},{z} ({(j + levelObject.VertexCount)})");*/
+
+                        int x = f.ReadInt32();
+                        int y = f.ReadInt32();
+                        int z = f.ReadInt32();
+                        Console.WriteLine($"{j}: {x},{y},{z} ({(j + levelObject.VertexCount)})");
                     }
-                    levelObject.Quads = quads;
-                    levelObject.CreateTriangles();
+
+                    LevelObjectPrimitive[] primitives = new LevelObjectPrimitive[primitiveCount1];
+                    for (int j = 0; j < primitives.Length; j++)
+                    {
+                        primitives[j] = new LevelObjectPrimitive();
+                    }
+
+                    //f.BaseStream.Position = dataOffset + quadsOffset;
+                    // Read surface vertices
+                    LevelObjectVertex[] surfaceVertices = new LevelObjectVertex[surfaceVertexCount];
+                    for (int j = 0; j < surfaceVertexCount; j++)
+                    {
+                        /*quads[j] = new LevelObjectQuad();
+                        for (int k = 0; k < 4; k++)
+                        {*/
+                        long pos = f.BaseStream.Position - (dataOffset + quadsOffset);
+                        ushort positionIndex = f.ReadUInt16();
+                        surfaceVertices[j].X = vertexPositions[positionIndex].X;
+                        surfaceVertices[j].Y = vertexPositions[positionIndex].Y;
+                        surfaceVertices[j].Z = vertexPositions[positionIndex].Z;
+                        var primitiveIndex = f.ReadUInt16();
+                        primitives[primitiveIndex].Indices.Add((ushort)j);
+                        var extras1 = f.ReadInt32();
+                        var extras2 = f.ReadInt32();
+                        primitives[primitiveIndex].Extras1.Add(extras1);
+                        primitives[primitiveIndex].Extras2.Add(extras2);
+                        Console.WriteLine($"{j}: {positionIndex} {primitiveIndex} {extras1} {extras2} (Offset: {pos})");
+                        //}
+                    }
+                    levelObject.Vertices = surfaceVertices;
 
                     // Read materials
-                    f.BaseStream.Position = dataOffset + materialsOffset;
+                    Dictionary<long, LevelObjectQuad> quadOffsetLookup = new Dictionary<long, LevelObjectQuad>();
+                    LevelObjectQuad[] quads = new LevelObjectQuad[levelObject.QuadCount + quadCount3];
+                    levelObject.Quads = quads;
+                    //f.BaseStream.Position = dataOffset + materialsOffset;
                     for (int j = 0; j < levelObject.QuadCount; j++)
                     {
+                        //quads[j] = new LevelObjectQuad();
+
+                        //long pos = f.BaseStream.Position - (dataOffset + materialsOffset);
+                        long relativeOffset = f.BaseStream.Position - dataOffset;
+
+                        Console.WriteLine($"Quad {j} (Offset: {relativeOffset})");
+
                         ushort _unk = f.ReadUInt16();
+                        //Console.WriteLine($"Quad {j}: {_unk} @ {pos} / {pos2}");
 
                         ushort vertex1 = f.ReadUInt16();
                         ushort vertex2 = f.ReadUInt16();
                         ushort vertex3 = f.ReadUInt16();
                         ushort vertex4 = f.ReadUInt16();
 
+                        Console.WriteLine($"  Quad {j}: {vertex1},{vertex2},{vertex3},{vertex4}");
+
                         uint _unk2 = f.ReadUInt32();
                         uint _unk3 = f.ReadUInt32();
 
-                        vertex1 = f.ReadUInt16();
-                        vertex2 = f.ReadUInt16();
-                        vertex3 = f.ReadUInt16();
-                        vertex4 = f.ReadUInt16();
+                        ushort vertex1a = f.ReadUInt16();
+                        ushort vertex2a = f.ReadUInt16();
+                        ushort vertex3a = f.ReadUInt16();
+                        ushort vertex4a = f.ReadUInt16();
+
+                        bool anyDifference = 
+                            vertex1 != vertex1a || 
+                            vertex2 != vertex2a || 
+                            vertex3 != vertex3a || 
+                            vertex4 != vertex4a;
+
+                        if (anyDifference)
+                        {
+                            Console.WriteLine($"  Quad {j}: {vertex1a},{vertex2a},{vertex3a},{vertex4a}");
+
+                            Console.WriteLine($"  Quad {j}: anyDifference: {anyDifference}");
+                        }
 
                         uint _unk4 = f.ReadUInt32();
                         uint _unk5 = f.ReadUInt32();
 
-                        ushort _unk6 = f.ReadUInt16();
+                        LevelObjectQuadFlags flags = (LevelObjectQuadFlags)f.ReadUInt16();
 
-                        uint quadIndex = f.ReadUInt32();
+                        if (_unk4 != 0 || _unk5 != 0)
+                        {
+                            Console.WriteLine($"  Quad {j}: _unk4: {_unk4} -- _unk5: {_unk5}");
+                        }
+
+                        Console.WriteLine($"  Quad {j}: flags: {flags}");
+
+                        uint primitiveIndex = f.ReadUInt32();
                         uint materialOffset = f.ReadUInt32();
                         uint unk = f.ReadUInt32();
+
+                        Console.WriteLine($"  Quad {j}: primitiveIndex: {primitiveIndex}");
+                        Console.WriteLine($"  Quad {j}: unk: {unk}");
+
+                        var primitive = primitives[primitiveIndex];
+
+                        quads[j] = new LevelObjectQuad();
+                        quadOffsetLookup.Add(relativeOffset, quads[j]);
+                        quads[j].Flags = flags;
+                        if (primitive.Indices.Count == 3)
+                        {
+                            quads[j].Indices[0] = primitive.Indices[0];
+                            quads[j].Indices[1] = primitive.Indices[1];
+                            quads[j].Indices[2] = primitive.Indices[2];
+                            quads[j].GeometryType = GeometryType.Triangle;
+                        }
+                        else if (primitive.Indices.Count == 4)
+                        {
+                            quads[j].Indices[0] = primitive.Indices[0];
+                            quads[j].Indices[1] = primitive.Indices[1];
+                            quads[j].Indices[2] = primitive.Indices[2];
+                            quads[j].Indices[3] = primitive.Indices[3];
+                            quads[j].GeometryType = GeometryType.Quad;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Primitive count mismatch on " + levelObject.Name + " - quad: " + j);
+                            quads[j].Indices[0] = vertex1;
+                            quads[j].Indices[1] = vertex2;
+                            quads[j].Indices[2] = vertex3;
+                            quads[j].Indices[3] = vertex4;
+                            quads[j].GeometryType = GeometryType.Quad;
+                        }
 
                         if (materialLookup.ContainsKey(materialOffset))
                         {
                             var material = materialLookup[materialOffset];
-                            quads[quadIndex].MaterialOffset = materialOffset;
-                            quads[quadIndex].Material = material;
-                        }
-                    }
+                            quads[j].MaterialOffset = materialOffset;
+                            quads[j].Material = material;
 
-                    // Unknown additional materials (the following code block is not correct)
-                    f.BaseStream.Position = dataOffset + quadMaterialsOffset;
-                    /*for (int j = 0; j < unknown_length; j++)
+                            Console.WriteLine($"  Quad {j}: Material: {(material != null ? material.Name : "null")}");
+                        }
+                    }                    
+
+                    // additional material properties (duplicated quads with (potentially) a different material)
+                    for (int j = 0; j < quadCount3; j++)
                     {
-                        uint index = f.ReadUInt32();
-                        uint materialOffset = f.ReadUInt32();
+                        int index = j + levelObject.QuadCount;
                         uint unk = f.ReadUInt32();
+                        uint materialOffset = f.ReadUInt32();
+                        uint quadOffset = f.ReadUInt32();
+
+                        Console.WriteLine($"Quad instance {index}: quadOffset: {quadOffset} -- materialOffset: {materialOffset} -- unk: {unk}");
+
+                        if (quadOffsetLookup.ContainsKey(quadOffset) == false)
+                        {
+                            Console.WriteLine("Failed to lookup quad instance");
+                            continue;
+                        }
+                        LevelObjectQuad originalQuad = quadOffsetLookup[quadOffset];
+
+                        quads[index] = new LevelObjectQuad();
+                        quads[index].Indices = originalQuad.Indices;
+                        quads[index].Indices2 = originalQuad.Indices2;
+                        quads[index].Extras1 = originalQuad.Extras1;
+                        quads[index].Extras2 = originalQuad.Extras2;
+                        quads[index].Flags = originalQuad.Flags;
 
                         if (materialLookup.ContainsKey(materialOffset)) 
                         { 
                             var material = materialLookup[materialOffset];
                             quads[index].MaterialOffset = materialOffset;
                             quads[index].Material = material;
+
+                            Console.WriteLine($"  Quad instance {index}: Material: {(material != null ? material.Name : "null")}");
                         }
-                    }*/
+                    }
+
+                    levelObject.CreateTriangles();
                 }
                 catch (Exception ex)
                 {

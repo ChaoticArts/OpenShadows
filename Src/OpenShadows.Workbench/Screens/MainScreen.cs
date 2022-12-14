@@ -19,7 +19,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private ImGuiRenderer ImGuiRenderer;
 
-		private int CurrentScreen = 0;
+		private int CurrentScreen = 1;
 
 		private List<IScreen> Screens = new List<IScreen>();
 
