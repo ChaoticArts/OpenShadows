@@ -9,6 +9,15 @@ This project tries to reimplement the executables of **Realms of Arkania III: Sh
 * getting more and more into graphics and game programming
 
 
+## Prototype Screenshots
+> Note: Not everything is rendered correctly yet
+
+![Market](/Screenshots/market.jpg?raw=true)
+![Riva](/Screenshots/riva01.jpg?raw=true)
+![Riva2](/Screenshots/riva02.jpg?raw=true)
+![Tower](/Screenshots/magetower.jpg?raw=true)
+![Outdoor](/Screenshots/env.jpg?raw=true)
+
 ## Technology
 The game will be developed using **.NET Core** in combination with [Veldrid](https://www.github.com/mellinoe/Veldrid). This tech-stack ensures good platform independence while simultaneously granting rapid development speed, suitable performance and access to modern graphics.
 
