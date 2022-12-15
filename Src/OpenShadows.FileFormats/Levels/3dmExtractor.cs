@@ -22,6 +22,7 @@ namespace OpenShadows.FileFormats.Levels
     /// - Billboards
     /// - Blocking/Non-blocking
     /// - Alpha-test (hard alpha) textures
+    /// - World space texture coordinates? (Texture coordinates may actually be in world space)
     /// </summary>
     public static class Level3dmExtractor
     {

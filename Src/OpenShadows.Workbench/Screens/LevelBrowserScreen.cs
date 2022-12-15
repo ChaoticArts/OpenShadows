@@ -162,7 +162,7 @@ namespace OpenShadows.Workbench.Screens
                     var uncompressedData = Utils.UnpackBoPaCompressedData(compressedData);
                     File.WriteAllBytes(fn, uncompressedData);
 
-                    var level = Level3dmExtractor.ExtractLevel(uncompressedData, entry.Name, 0.00001f);
+                    var level = Level3dmExtractor.ExtractLevel(uncompressedData, entry.Name, 0.0001f);
                     level.DumpToObj(
                         Path.Combine(
                             Path.GetDirectoryName(ReadableAlfPath),
@@ -174,7 +174,29 @@ namespace OpenShadows.Workbench.Screens
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract",
                             Path.GetFileNameWithoutExtension(entry.Name)),
-                        1.0f);                    
+                        1.0f);
+
+                    // Dump textures
+                    var textures = textureModule.Entries.Where(e => e.Name.EndsWith("PIX")).ToArray();
+                    foreach (var t in textures)
+                    {
+                        string tex_fn = Path.Combine(
+                            Path.GetDirectoryName(ReadableAlfPath),
+                            "extract",
+                            Path.GetFileNameWithoutExtension(entry.Name),
+                            t.Name);
+                        tex_fn = Path.ChangeExtension(tex_fn, ".png");
+
+                        byte[] paletteData = levelModule.Entries.Find(e => e.Name.EndsWith("PAL")).GetContents();
+                        var br = new BinaryReader(new MemoryStream(paletteData));
+                        Palette p = Palette.LoadFromPal(br);
+
+                        byte[] imageData = t.GetContents();
+                        ImageData temp = PixExtractor.ExtractImage(imageData, p);
+
+                        var img = SixLabors.ImageSharp.Image.LoadPixelData<Rgba32>(temp.PixelData, temp.Width, temp.Height);
+                        img.Save(tex_fn);
+                    }
                 }
                 ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
                 ImGui.SameLine();
@@ -210,7 +232,7 @@ namespace OpenShadows.Workbench.Screens
 
                 for (int i = 0; i < levelModule.Entries.Count; i++)
                 {
-                    if (ImGui.Selectable((textureModule.Entries.Count + i).ToString(),
+                    if (ImGui.Selectable((levelModule.Entries.Count + i).ToString(),
                         i == SelectedLevelEntry, ImGuiSelectableFlags.SpanAllColumns))
                     {
                         SelectLevelEntry(i);
