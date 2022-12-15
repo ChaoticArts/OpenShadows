@@ -7,113 +7,23 @@ using System.Xml.Linq;
 
 namespace OpenShadows.Data.Game
 {
-    // Note: Likely wrong!!
-    [Flags]
-    public enum LevelObjectQuadFlags : UInt16
+    public struct LevelObjectFaceList
     {
-        None            = 0b_0000_0000_0000_0000,
-        Unk1            = 0b_0000_0000_0000_0001,
-        Unk2            = 0b_0000_0000_0000_0010,
-        Unk3            = 0b_0000_0000_0000_0100,
-        Unk4            = 0b_0000_0000_0000_1000,
-        Unk5            = 0b_0000_0000_0001_0000,
-        Unk6            = 0b_0000_0000_0010_0000,
-        Unk7            = 0b_0000_0000_0100_0000,        
-    }
-
-    public enum GeometryType
-    {
-        Unknown,
-        Triangle,
-        Quad
-    }
-
-    public struct LevelObjectQuad
-    {
-        public ushort[] Indices = new ushort[4];
-        public ushort[] Indices2 = new ushort[4];
-        public int[] Extras1 = new int[4];
-        public int[] Extras2 = new int[4];
-
-        public uint MaterialOffset = 0;
-        public ObjectMaterial Material = null;
-        public LevelObjectQuadFlags Flags = LevelObjectQuadFlags.None;
-        public GeometryType GeometryType = GeometryType.Unknown;
-
-        public LevelObjectQuad()
-        {
-
-        }
+        public int TriangleCount;
+        public int[] VertexIndices;
+        public LevelMaterial Material;
 
         public override string ToString()
         {
-            if (Indices.Length != 4)
-            {
-                return "Invalid Quad";
-            }
-            return $"{GeometryType} - {Indices[0]} {Indices[1]} {Indices[2]} {Indices[3]}";
-        }
-    }
-
-    public class LevelObjectPrimitive
-    {
-        public List<ushort> Indices = new List<ushort>();
-        public List<int> Extras1 = new List<int>();
-        public List<int> Extras2 = new List<int>();
-
-        public uint MaterialOffset = 0;
-        public ObjectMaterial Material = null;
-
-        public LevelObjectPrimitive()
-        {
-            //
-        }
-
-        public override string ToString()
-        {
-            StringBuilder sb = new();
-            for (int i = 0; i < Indices.Count; i++)
-            {
-                if (i > 0)
-                {
-                    sb.Append(" ");
-                }
-                sb.Append(Indices[i].ToString());
-            }
-            return sb.ToString();
-        }
-    }
-
-    public struct LevelObjectFace
-    {
-        public int V1;
-        public int V2;
-        public int V3;
-        public ObjectMaterial Material;
-
-        public override string ToString()
-        {
-            return $"{V1},{V2},{V3}";
-        }
-    }
-
-    public struct LevelObjectVector
-    {
-        public int X;
-        public int Y;
-        public int Z;
-
-        public override string ToString()
-        {
-            return $"{X},{Y},{Z}";
+            return $"{VertexIndices.Length},{Material.Name}";
         }
     }
 
     public struct LevelObjectVertex
     {
-        public int X;
-        public int Y;
-        public int Z;
+        public float X;
+        public float Y;
+        public float Z;
 
         public float U;
         public float V;
@@ -126,100 +36,32 @@ namespace OpenShadows.Data.Game
 
     public struct BoundingBox
     {
-        public int CenterX;
-        public int CenterY;
-        public int CenterZ;
+        public float CenterX;
+        public float CenterY;
+        public float CenterZ;
 
-        public int MinX;
-        public int MinY;
-        public int MinZ;
+        public float Unknown;
 
-        public int MaxX;
-        public int MaxY;
-        public int MaxZ;
+        public float MinX;
+        public float MinY;
+        public float MinZ;
+
+        public float MaxX;
+        public float MaxY;
+        public float MaxZ;
     }
 
-    public class LevelObject
+    public class LevelMaterial
     {
-        public string Name;
-
-        public int QuadCount;
-        public int VertexCount;
-
-        public BoundingBox BoundingBox;
-        public LevelObjectQuad[] Quads;
-        public LevelObjectVertex[] Vertices;
-        public LevelObjectFace[] Faces;
-
-        private int GetFaceCount()
+        private string name;
+        public string Name
         {
-            int count = 0;
-            for (int i = 0; i < Quads.Length; i++)
+            get { return name; }
+            set
             {
-                var type = Quads[i].GeometryType;
-
-                if (type == GeometryType.Triangle)
-                {
-                    count++;
-                }
-                else
-                {
-                    count += 2;
-                }
-            }
-            return count;
-        }
-
-        public void CreateTriangles()
-        {
-            int faceCount = GetFaceCount();
-
-            Faces = new LevelObjectFace[faceCount];
-            int index = 0;
-            for (int i = 0; i < Quads.Length; i++)
-            {
-                var type = Quads[i].GeometryType;
-
-                if (type == GeometryType.Triangle)
-                {
-                    Faces[index++] = new LevelObjectFace()
-                    {
-                        V1 = Quads[i].Indices[0],
-                        V2 = Quads[i].Indices[1],
-                        V3 = Quads[i].Indices[2],
-                        Material = Quads[i].Material,
-                    };
-                }
-                else
-                {
-                    Faces[index++] = new LevelObjectFace()
-                    {
-                        V1 = Quads[i].Indices[0],
-                        V2 = Quads[i].Indices[1],
-                        V3 = Quads[i].Indices[3],
-                        Material = Quads[i].Material,
-                    };
-
-                    Faces[index++] = new LevelObjectFace()
-                    {
-                        V1 = Quads[i].Indices[1],
-                        V2 = Quads[i].Indices[2],
-                        V3 = Quads[i].Indices[3],
-                        Material = Quads[i].Material,
-                    };
-                }
+                name = value.Replace(' ', '_').Replace('-', '_');
             }
         }
-
-        public override string ToString()
-        {
-            return Name;
-        }
-    }
-
-    public class ObjectMaterial
-    {
-        public string Name;
 
         public ushort Alpha;
 
@@ -231,13 +73,27 @@ namespace OpenShadows.Data.Game
         }
     }
 
+    public class LevelObject
+    {
+        public string Name;
+
+        public BoundingBox BoundingBox;
+        public LevelObjectVertex[] Vertices;
+        public LevelObjectFaceList[] FaceLists;
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+
     public class Level
     {
-        public Dictionary<int, string> StringTable = new Dictionary<int, string>();
+        public string Name;        
 
         public List<LevelObject> Objects = new List<LevelObject>();
 
-        public List<ObjectMaterial> Materials = new List<ObjectMaterial>();
+        public List<LevelMaterial> Materials = new List<LevelMaterial>();
 
         public void DumpToObjIndividual(string folder, float scaleFactor)
         {
@@ -249,27 +105,36 @@ namespace OpenShadows.Data.Game
             string fn = Path.Combine(folder, "level.mtl");
             using var sw2 = new StreamWriter(fn);
 
-            sw2.WriteLine("newmtl checker");
-            sw2.WriteLine("   Ka 1.000 1.000 1.000");
-            sw2.WriteLine("   Kd 1.000 1.000 1.000");
-            sw2.WriteLine("   map_Ka MH1_GRND.png");
-            sw2.WriteLine("   map_Kd MH1_GRND.png");
-            sw2.WriteLine();
-
-            for (int j = 0; j < Objects.Count; j++)
+            for (int i = 0; i < Materials.Count; i++)
             {
-                var item = Objects[j];
-
-                if (item.Name.Contains("01N9999_34"))
+                var mat = Materials[i];
+                sw2.WriteLine("newmtl " + mat.Name);
+                if (mat.TextureName != "unknown")
                 {
-                    int hehe = 42;
+                    sw2.WriteLine("   Ka 1.000 1.000 1.000");
+                    sw2.WriteLine("   Kd 1.000 1.000 1.000");
+                    sw2.WriteLine("   map_Ka " + mat.TextureName + ".png");
+                    sw2.WriteLine("   map_Kd " + mat.TextureName + ".png");
                 }
+                else 
+                {
+                    sw2.WriteLine("   Ka 1.000 0.000 1.000");
+                    sw2.WriteLine("   Kd 1.000 0.000 1.000");
+                    sw2.WriteLine("   d 0.2");
+                }
+                sw2.WriteLine();
+            }
+
+            for (int objIdx = 0; objIdx < Objects.Count; objIdx++)
+            {
+                var item = Objects[objIdx];
 
                 fn = Path.Combine(folder, item.Name + ".obj");
                 using var sw = new StreamWriter(fn);
                 sw.WriteLine("mtllib level.mtl");
                 sw.WriteLine();
 
+                sw.WriteLine("o " + item.Name);
                 for (int i = 0; i < item.Vertices.Length; i++)
                 {
                     var v = item.Vertices[i];
@@ -282,22 +147,28 @@ namespace OpenShadows.Data.Game
                         z.ToString("F5", CultureInfo.InvariantCulture));
                 }
 
-                sw.WriteLine("vt 0.00000 0.00000 0.00000");
-                sw.WriteLine("vt 0.00000 1.00000 0.00000");
-                sw.WriteLine("vt 1.00000 0.00000 0.00000");
-                sw.WriteLine("vt 1.00000 1.00000 0.00000");
-
-                sw.WriteLine("g Faces_" + item.Name);
-                sw.WriteLine("usemtl checker");
-                for (int i = 0; i < item.Faces.Length; i++)
+                for (int i = 0; i < item.Vertices.Length; i++)
                 {
-                    var f = item.Faces[i];
-                    /*if (f.Material != null &&
-                        f.Material.Alpha < 100)
+                    var vert = item.Vertices[i];
+                    float u = (float)vert.U;
+                    float v = (float)vert.V;
+                    sw.WriteLine("vt " +
+                        u.ToString("F5", CultureInfo.InvariantCulture) + " " +
+                        v.ToString("F5", CultureInfo.InvariantCulture));
+                }
+
+                for (int i = 0; i < item.FaceLists.Length; i++)
+                {
+                    var fl = item.FaceLists[i];
+
+                    sw.WriteLine("usemtl " + fl.Material.Name);
+                    for (int j = 0; j < fl.VertexIndices.Length; j+=3)
                     {
-                        continue;
-                    }*/
-                    sw.WriteLine("f " + (f.V1 + 1) + "/1 " + (f.V2 + 1) + "/2 " + (f.V3 + 1) + "/3");
+                        var v1 = fl.VertexIndices[j + 0] + 1;
+                        var v2 = fl.VertexIndices[j + 1] + 1;
+                        var v3 = fl.VertexIndices[j + 2] + 1;
+                        sw.WriteLine($"f {v1}/{v1} {v2}/{v2} {v3}/{v3}");
+                    }
                 }
             }
         }
@@ -312,12 +183,25 @@ namespace OpenShadows.Data.Game
             string fn = Path.Combine(folder, "level.mtl");
             using var sw2 = new StreamWriter(fn);
 
-            sw2.WriteLine("newmtl checker");
-            sw2.WriteLine("   Ka 1.000 1.000 1.000");
-            sw2.WriteLine("   Kd 1.000 1.000 1.000");
-            sw2.WriteLine("   map_Ka MH1_GRND.png");
-            sw2.WriteLine("   map_Kd MH1_GRND.png");
-            sw2.WriteLine();
+            for (int i = 0; i < Materials.Count; i++)
+            {
+                var mat = Materials[i];
+                sw2.WriteLine("newmtl " + mat.Name);
+                if (mat.TextureName != "unknown")
+                {
+                    sw2.WriteLine("   Ka 1.000 1.000 1.000");
+                    sw2.WriteLine("   Kd 1.000 1.000 1.000");
+                    sw2.WriteLine("   map_Ka " + mat.TextureName + ".png");
+                    sw2.WriteLine("   map_Kd " + mat.TextureName + ".png");
+                }
+                else
+                {
+                    sw2.WriteLine("   Ka 1.000 0.000 1.000");
+                    sw2.WriteLine("   Kd 1.000 0.000 1.000");
+                    sw2.WriteLine("   d 0.2");
+                }
+                sw2.WriteLine();
+            }
 
             fn = Path.Combine(folder, "level.obj");
             using var sw = new StreamWriter(fn);
@@ -346,35 +230,39 @@ namespace OpenShadows.Data.Game
                 baseIndex += item.Vertices.Length;
             }
 
-            sw.WriteLine("vt 0.00000 0.00000 0.00000");
-            sw.WriteLine("vt 0.00000 1.00000 0.00000");
-            sw.WriteLine("vt 1.00000 0.00000 0.00000");
-            sw.WriteLine("vt 1.00000 1.00000 0.00000");
-
             for (int j = 0; j < Objects.Count; j++)
             {
                 var item = Objects[j];
 
-                /*if (item.Faces.Length == 1 &&
-                    (item.Faces[0].Material == null ||
-                     item.Faces[0].Material.Alpha < 100))
+                for (int i = 0; i < item.Vertices.Length; i++)
                 {
-                    continue;
-                }*/
+                    var vert = item.Vertices[i];
+                    float u = (float)vert.U;
+                    float v = (float)vert.V;
+                    sw.WriteLine("vt " +
+                        u.ToString("F5", CultureInfo.InvariantCulture) + " " +
+                        v.ToString("F5", CultureInfo.InvariantCulture));
+                }
+            }
 
-                baseIndex = objectBaseIndices[j];
+            for (int objIdx = 0; objIdx < Objects.Count; objIdx++)
+            {
+                var item = Objects[objIdx];
 
-                sw.WriteLine("g Faces_" + item.Name);
-                sw.WriteLine("usemtl checker");
-                for (int i = 0; i < item.Faces.Length; i++)
+                baseIndex = objectBaseIndices[objIdx];
+
+                for (int i = 0; i < item.FaceLists.Length; i++)
                 {
-                    var f = item.Faces[i];
-                    /*if (f.Material == null ||
-                        f.Material.Alpha < 100)
+                    var fl = item.FaceLists[i];
+
+                    sw.WriteLine("usemtl " + fl.Material.Name);
+                    for (int j = 0; j < fl.VertexIndices.Length; j += 3)
                     {
-                        continue;
-                    }*/
-                    sw.WriteLine("f " + (f.V1 + 1 + baseIndex) + "/1 " + (f.V2 + 1 + baseIndex) + "/2 " + (f.V3 + 1 + baseIndex) + "/3");
+                        var v1 = fl.VertexIndices[j + 0] + 1 + baseIndex;
+                        var v2 = fl.VertexIndices[j + 1] + 1 + baseIndex;
+                        var v3 = fl.VertexIndices[j + 2] + 1 + baseIndex;
+                        sw.WriteLine($"f {v1}/{v1} {v2}/{v2} {v3}/{v3}");
+                    }
                 }
             }
         }

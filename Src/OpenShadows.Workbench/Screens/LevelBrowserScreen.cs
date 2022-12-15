@@ -159,22 +159,22 @@ namespace OpenShadows.Workbench.Screens
                             "extract");
                     fn = Path.Combine(fn, entry.Name);
                     var compressedData = entry.GetContents();
-                    var uncompressedData = Level3dmExtractor.UncompressLevel(compressedData);
+                    var uncompressedData = Utils.UnpackBoPaCompressedData(compressedData);
                     File.WriteAllBytes(fn, uncompressedData);
 
-                    var level = Level3dmExtractor.ExtractLevel(uncompressedData);
+                    var level = Level3dmExtractor.ExtractLevel(uncompressedData, entry.Name, 0.00001f);
                     level.DumpToObj(
                         Path.Combine(
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract",
                             Path.GetFileNameWithoutExtension(entry.Name)),
-                        0.00001f);
+                        1.0f);
                     level.DumpToObjIndividual(
                         Path.Combine(
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract",
                             Path.GetFileNameWithoutExtension(entry.Name)),
-                        0.00001f);                    
+                        1.0f);                    
                 }
                 ImGui.Text($"Palette: {levelModule.Entries.First(e => e.Name.EndsWith("PAL")).Name}");
                 ImGui.SameLine();
