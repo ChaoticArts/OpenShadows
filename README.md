@@ -10,7 +10,7 @@ This project tries to reimplement the executables of **Realms of Arkania III: Sh
 
 
 ## Prototype Screenshots
-> Note: Not everything is rendered correctly yet
+> Note: Not everything is rendered correctly yet. The screenshots were taken using an OBJ viewer from the exported map data.
 
 ![Market](/Screenshots/market.jpg?raw=true)
 ![Riva](/Screenshots/riva01.jpg?raw=true)
