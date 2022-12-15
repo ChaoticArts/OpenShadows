@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29509.3
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenShadows.Workbench", "OpenShadows.Workbench\OpenShadows.Workbench.csproj", "{6DBD55F2-36F1-4759-A90B-608C4F2313B8}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -16,6 +16,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenShadows.Data", "OpenShadows.Data\OpenShadows.Data.csproj", "{6C1DFBD0-49DB-498A-90C1-8E1456C5565A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenShadows.Native", "OpenShadows.Native\OpenShadows.Native.vcxproj", "{4CF6C217-8F1C-4A06-AA4C-E04232797F95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenShadows", "OpenShadows\OpenShadows.csproj", "{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +76,18 @@ Global
 		{4CF6C217-8F1C-4A06-AA4C-E04232797F95}.Release|x64.ActiveCfg = Release|x64
 		{4CF6C217-8F1C-4A06-AA4C-E04232797F95}.Release|x64.Build.0 = Release|x64
 		{4CF6C217-8F1C-4A06-AA4C-E04232797F95}.Release|x86.ActiveCfg = Release|x64
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Debug|x64.Build.0 = Debug|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Debug|x86.Build.0 = Debug|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Release|x64.ActiveCfg = Release|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Release|x64.Build.0 = Release|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Release|x86.ActiveCfg = Release|Any CPU
+		{80A6319E-C8BB-4B6C-A197-F5564C16E3E5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
