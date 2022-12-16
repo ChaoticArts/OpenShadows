@@ -19,7 +19,7 @@ namespace OpenShadows.Scenes
         protected Sdl2Window window;
 
         private readonly Camera camera;
-
+        private CommandList resourceUpdateCL;
         private readonly Dictionary<string, ImageSharpTexture> _textures = new Dictionary<string, ImageSharpTexture>();
 
         public Camera Camera => camera;
@@ -90,10 +90,19 @@ namespace OpenShadows.Scenes
 
             cl.End();
 
+            resourceUpdateCL.Begin();
+            UpdatePerFrameResources(gd, resourceUpdateCL, sceneContext);
+            resourceUpdateCL.End();
+
             gd.SubmitCommands(cl);
         }
 
         protected virtual void RenderMainPass(GraphicsDevice gd, CommandList cl, SceneContext sceneContext, BoundingFrustum cameraFrustum)
+        {
+            //
+        }
+
+        protected virtual void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sceneContext)
         {
             //
         }
@@ -106,10 +115,15 @@ namespace OpenShadows.Scenes
         internal virtual void CreateAllDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             GuiRenderable.CreateDeviceObjects(gd, cl, sc);
+
+            resourceUpdateCL = gd.ResourceFactory.CreateCommandList();
+            resourceUpdateCL.Name = "Scene Resource Update Command List";
         }
 
         internal virtual void DestroyAllDeviceObjects()
         {
+            resourceUpdateCL.Dispose();
+
             GuiRenderable.DestroyDeviceObjects();
         }
 

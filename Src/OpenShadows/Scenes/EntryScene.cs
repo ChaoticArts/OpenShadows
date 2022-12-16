@@ -29,7 +29,7 @@ namespace OpenShadows.Scenes
             base.Init();
 
             skybox = Skybox.LoadDefaultSkybox();
-            //LoadMesh();
+            LoadMesh();
         }
 
         public override void Update(float deltaSeconds)
@@ -43,10 +43,9 @@ namespace OpenShadows.Scenes
 
             if (ImGui.Begin("window", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove))
             {
-                ImGui.PushItemWidth(-1);
+                //ImGui.PushItemWidth(-1);
                 ImGui.Text("Test");
-                //ImGui.InputText("##alf_path", ref ReadableAlfPath, 1000, Alf != null ? ImGuiInputTextFlags.ReadOnly : 0);
-                ImGui.PopItemWidth();
+                //ImGui.PopItemWidth();
                 ImGui.End();
             }
 
@@ -92,7 +91,7 @@ namespace OpenShadows.Scenes
 
                 foreach (ObjFile.MeshGroup group in atriumFile.MeshGroups)
                 {
-                    Vector3 scale = new Vector3(0.1f);
+                    Vector3 scale = new Vector3(0.001f);
                     ConstructedMeshInfo mesh = atriumFile.GetMesh(group);
                     MaterialDefinition materialDef = atriumMtls.Definitions[mesh.MaterialName];
                     ImageSharpTexture overrideTextureData = null;
@@ -136,6 +135,17 @@ namespace OpenShadows.Scenes
         protected override void RenderMainSwapChainPass(GraphicsDevice gd, CommandList cl, SceneContext sceneContext)
         {
             base.RenderMainSwapChainPass(gd, cl, sceneContext);
+        }
+
+        protected override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sceneContext)
+        {
+            base.UpdatePerFrameResources(gd, cl, sceneContext);
+
+            for (int i = 0; i < meshes.Count; i++)
+            {
+                var m = meshes[i];
+                m.UpdatePerFrameResources(gd, cl, sceneContext);
+            }
         }
     }
 }

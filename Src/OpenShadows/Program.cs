@@ -1,5 +1,7 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using Serilog.Events;
+using Serilog;
 
 namespace OpenShadows
 {
@@ -49,10 +51,25 @@ namespace OpenShadows
                 return 1;
             }
 
-            Console.WriteLine("StartupOptions.LevelName: " + StartupOptions.LevelName);
+            var config = new LoggerConfiguration()
+#if DEBUG
+                .MinimumLevel.Debug()
+#else
+                .MinimumLevel.Information()
+#endif
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .Enrich.FromLogContext()
+                .WriteTo.Console();
+
+            Log.Logger = config.CreateLogger();
+
+            Log.Information("StartupOptions.LevelName: " + StartupOptions.LevelName);
 
             OpenShadows openShadows = new OpenShadows();
-            openShadows.Init(StartupOptions);
+            if (openShadows.Init(StartupOptions) == false)
+            {
+                return 2;
+            }
             openShadows.Run();
 
             return 0;
