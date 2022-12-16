@@ -1,9 +1,10 @@
-﻿using System;
+﻿using OpenShadows.Data.Rendering;
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Veldrid;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Scenes
 {
     public class DirectionalLight
     {

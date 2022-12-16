@@ -5,7 +5,7 @@ using System.Text;
 using Veldrid;
 using Veldrid.Sdl2;
 
-namespace OpenShadows.Input
+namespace OpenShadows.Data.Input
 {
     public static class InputTracker
     {

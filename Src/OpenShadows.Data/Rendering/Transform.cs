@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     public class Transform
     {

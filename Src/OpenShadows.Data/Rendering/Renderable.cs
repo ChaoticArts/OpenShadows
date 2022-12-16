@@ -3,13 +3,13 @@ using System.Numerics;
 using Veldrid;
 using Veldrid.Utilities;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     public abstract class Renderable : IDisposable
     {
-        internal abstract void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc);
-        internal abstract void Render(GraphicsDevice gd, CommandList cl, SceneContext sc);
-        internal abstract void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc);
+        public abstract void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc);
+        public abstract void Render(GraphicsDevice gd, CommandList cl, SceneContext sc);
+        public abstract void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc);
         public abstract void DestroyDeviceObjects();
         public abstract RenderOrderKey GetRenderOrderKey(Vector3 cameraPosition);
 

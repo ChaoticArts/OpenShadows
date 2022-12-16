@@ -3,16 +3,16 @@ using System.Numerics;
 using Veldrid;
 using Veldrid.Utilities;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
-    internal class FullScreenQuad : Renderable
+    public class FullScreenQuad : Renderable
     {
         private DisposeCollector _disposeCollector;
         private Pipeline _pipeline;
         private DeviceBuffer _ib;
         private DeviceBuffer _vb;
 
-        internal override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             DisposeCollectorResourceFactory factory = new DisposeCollectorResourceFactory(gd.ResourceFactory);
             _disposeCollector = factory.DisposeCollector;
@@ -63,7 +63,7 @@ namespace OpenShadows.Core
             return new RenderOrderKey();
         }
 
-        internal override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             cl.SetPipeline(_pipeline);
             cl.SetGraphicsResourceSet(0, sc.MainSceneViewResourceSet);
@@ -72,7 +72,7 @@ namespace OpenShadows.Core
             cl.DrawIndexed(6, 1, 0, 0, 0);
         }
 
-        internal override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
         }
 

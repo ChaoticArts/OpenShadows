@@ -2,11 +2,12 @@
 using SixLabors.ImageSharp.PixelFormats;
 using System.Numerics;
 using Veldrid.Utilities;
-using Veldrid.ImageSharp;
-using OpenShadows.Core;
 using Veldrid;
+using OpenShadows.Data.Rendering;
+using OpenShadows.Data.Rendering.ImageSharp;
+using OpenShadows.Data.Core;
 
-namespace OpenShadows.Scenes
+namespace OpenShadows.Data.Scenes
 {
     public class Skybox : Renderable
     {
@@ -36,7 +37,7 @@ namespace OpenShadows.Scenes
             _bottom = bottom;
         }
 
-        internal override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             ResourceFactory factory = gd.ResourceFactory;
 
@@ -87,7 +88,7 @@ namespace OpenShadows.Scenes
             _disposeCollector.Add(_vb, _ib, textureCube, textureView, _layout, _pipeline, _resourceSet, vs, fs);
         }
 
-        internal override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
         }
 
@@ -107,7 +108,7 @@ namespace OpenShadows.Scenes
             _disposeCollector.DisposeAll();
         }
 
-        internal override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             cl.SetVertexBuffer(0, _vb);
             cl.SetIndexBuffer(_ib, IndexFormat.UInt16);

@@ -1,8 +1,10 @@
 ﻿using ImGuiNET;
 using Microsoft.FSharp.Collections;
-using OpenShadows.Core;
-using OpenShadows.GUI;
-using OpenShadows.Input;
+using OpenShadows.Data.Core;
+using OpenShadows.Data.GUI;
+using OpenShadows.Data.Input;
+using OpenShadows.Data.Rendering;
+using OpenShadows.Data.Scenes;
 using OpenShadows.Scenes;
 using Serilog;
 using System;

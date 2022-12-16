@@ -4,8 +4,9 @@ using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Veldrid;
 
-namespace Veldrid.ImageSharp
+namespace OpenShadows.Data.Rendering.ImageSharp
 {
     public class ImageSharpCubemapTexture
     {

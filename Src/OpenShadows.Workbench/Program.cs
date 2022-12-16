@@ -10,7 +10,7 @@ namespace OpenShadows.Workbench
 		{
             var config = new LoggerConfiguration()
 #if DEBUG
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
 #else
                 .MinimumLevel.Information()
 #endif

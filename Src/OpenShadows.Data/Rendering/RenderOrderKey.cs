@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     public struct RenderOrderKey : IComparable<RenderOrderKey>, IComparable
     {
@@ -19,7 +19,7 @@ namespace OpenShadows.Core
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RenderOrderKey Create(uint materialID, float cameraDistance)
         {
-            uint cameraDistanceInt = (uint)Math.Min(uint.MaxValue, (cameraDistance * 1000f));
+            uint cameraDistanceInt = (uint)Math.Min(uint.MaxValue, cameraDistance * 1000f);
 
             return new RenderOrderKey(
                 ((ulong)materialID << 32) +

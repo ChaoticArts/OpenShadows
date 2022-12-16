@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Veldrid.Sdl2;
 using Veldrid;
-using OpenShadows.Core;
 using System.Numerics;
 using Veldrid.Utilities;
-using Veldrid.ImageSharp;
-using OpenShadows.GUI;
+using OpenShadows.Data.Rendering.ImageSharp;
+using OpenShadows.Data.GUI;
+using OpenShadows.Data.Rendering;
 
-namespace OpenShadows.Scenes
+namespace OpenShadows.Data.Scenes
 {
-    internal abstract class SceneBase
+    public abstract class SceneBase
     {
         protected GraphicsDevice gd;
         protected Sdl2Window window;
@@ -112,7 +108,7 @@ namespace OpenShadows.Scenes
             sceneContext.FullScreenQuad.Render(gd, cl, sceneContext);
         }
 
-        internal virtual void CreateAllDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public virtual void CreateAllDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             GuiRenderable.CreateDeviceObjects(gd, cl, sc);
 
@@ -120,7 +116,7 @@ namespace OpenShadows.Scenes
             resourceUpdateCL.Name = "Scene Resource Update Command List";
         }
 
-        internal virtual void DestroyAllDeviceObjects()
+        public virtual void DestroyAllDeviceObjects()
         {
             resourceUpdateCL.Dispose();
 

@@ -1,5 +1,4 @@
-﻿using OpenShadows.Core;
-using OpenShadows.Scenes;
+﻿using OpenShadows.Data.Scenes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Veldrid;
 
-namespace OpenShadows
+namespace OpenShadows.Data.Rendering
 {
-    internal class SceneContext
+    public class SceneContext
     {
         public DeviceBuffer ProjectionMatrixBuffer { get; private set; }
         public DeviceBuffer ViewMatrixBuffer { get; private set; }
@@ -27,7 +26,7 @@ namespace OpenShadows
         public ResourceSet MainSceneViewResourceSet { get; private set; }
 
         public DirectionalLight DirectionalLight { get; } = new DirectionalLight();
-        public TextureSampleCount MainSceneSampleCount { get; internal set; }
+        public TextureSampleCount MainSceneSampleCount { get; set; }
 
         public FullScreenQuad FullScreenQuad;
 
@@ -43,7 +42,7 @@ namespace OpenShadows
             Camera = scene.Camera;
         }
 
-        internal void CreateDeviceObjects(GraphicsDevice gd, CommandList cl)
+        public void CreateDeviceObjects(GraphicsDevice gd, CommandList cl)
         {
             ResourceFactory factory = gd.ResourceFactory;
 
@@ -67,14 +66,14 @@ namespace OpenShadows
             FullScreenQuad.CreateDeviceObjects(gd, cl, this);
         }
 
-        internal void UpdateCameraBuffers(CommandList cl)
+        public void UpdateCameraBuffers(CommandList cl)
         {
             cl.UpdateBuffer(ProjectionMatrixBuffer, 0, Camera.ProjectionMatrix);
             cl.UpdateBuffer(ViewMatrixBuffer, 0, Camera.ViewMatrix);
             cl.UpdateBuffer(CameraInfoBuffer, 0, Camera.GetCameraInfo());
         }
 
-        internal void DestroyDeviceObjects()
+        public void DestroyDeviceObjects()
         {
             FullScreenQuad.Dispose();
             ProjectionMatrixBuffer.Dispose();
@@ -90,7 +89,7 @@ namespace OpenShadows
             TextureSamplerResourceLayout.Dispose();
         }
 
-        internal void RecreateWindowSizedResources(GraphicsDevice gd, CommandList cl)
+        public void RecreateWindowSizedResources(GraphicsDevice gd, CommandList cl)
         {
             MainSceneColorTexture?.Dispose();
             MainSceneDepthTexture?.Dispose();

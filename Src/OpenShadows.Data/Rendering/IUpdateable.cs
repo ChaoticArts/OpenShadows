@@ -1,4 +1,4 @@
-﻿namespace OpenShadows
+﻿namespace OpenShadows.Data.Rendering
 {
     public interface IUpdateable
     {

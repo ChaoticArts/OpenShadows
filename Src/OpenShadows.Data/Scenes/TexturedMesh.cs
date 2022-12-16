@@ -1,13 +1,10 @@
 ﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using System;
-using Veldrid.ImageSharp;
 using Veldrid.Utilities;
-using System.Collections.Generic;
 using Veldrid;
-using OpenShadows.Core;
+using OpenShadows.Data.Rendering.ImageSharp;
+using OpenShadows.Data.Rendering;
 
-namespace OpenShadows.Scenes
+namespace OpenShadows.Data.Scenes
 {
     public class TexturedMesh : CullRenderable
     {
@@ -53,7 +50,7 @@ namespace OpenShadows.Scenes
 
         public override BoundingBox BoundingBox => BoundingBox.Transform(_centeredBounds, _transform.GetTransformMatrix());
 
-        internal override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             if (s_useUniformOffset)
             {
@@ -130,14 +127,15 @@ namespace OpenShadows.Scenes
             GraphicsPipelineDescription mainPD = new GraphicsPipelineDescription(
                 _alphamapTexture != null ? alphaBlendDesc : BlendStateDescription.SingleOverrideBlend,
                 gd.IsDepthRangeZeroToOne ? DepthStencilStateDescription.DepthOnlyGreaterEqual : DepthStencilStateDescription.DepthOnlyLessEqual,
-                RasterizerStateDescription.Default,
+                new RasterizerStateDescription(FaceCullMode.None, PolygonFillMode.Wireframe, FrontFace.Clockwise,
+                        RasterizerStateDescription.Default.DepthClipEnabled, RasterizerStateDescription.Default.ScissorTestEnabled),
                 PrimitiveTopology.TriangleList,
                 new ShaderSetDescription(mainVertexLayouts, new[] { mainVS, mainFS }, new[] { new SpecializationConstant(100, gd.IsClipSpaceYInverted) }),
                 new ResourceLayout[] { projViewLayout, mainSharedLayout, mainPerObjectLayout },
                 sc.MainSceneFramebuffer.OutputDescription);
             _pipeline = StaticResourceCache.GetPipeline(gd.ResourceFactory, ref mainPD);
             _pipeline.Name = "TexturedMesh Main Pipeline";
-            mainPD.RasterizerState.CullMode = FaceCullMode.Front;
+            //mainPD.RasterizerState.CullMode = FaceCullMode.None;
             mainPD.Outputs = sc.MainSceneFramebuffer.OutputDescription;
 
             _mainProjViewRS = StaticResourceCache.GetResourceSet(gd.ResourceFactory, new ResourceSetDescription(projViewLayout,
@@ -168,7 +166,7 @@ namespace OpenShadows.Scenes
                 Vector3.Distance(_objectCenter * _transform.Scale + _transform.Position, cameraPosition));
         }
 
-        internal override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             cl.SetVertexBuffer(0, _vb);
             cl.SetIndexBuffer(_ib, IndexFormat.UInt16);
@@ -180,7 +178,7 @@ namespace OpenShadows.Scenes
             cl.DrawIndexed((uint)_indexCount, 1, 0, 0, 0);
         }
 
-        internal override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             WorldAndInverse wai;
             wai.World = _transform.GetTransformMatrix();

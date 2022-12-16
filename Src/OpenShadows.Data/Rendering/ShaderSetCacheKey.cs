@@ -1,7 +1,7 @@
 ﻿using System;
 using Veldrid;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     public struct ShaderSetCacheKey : IEquatable<ShaderSetCacheKey>
     {

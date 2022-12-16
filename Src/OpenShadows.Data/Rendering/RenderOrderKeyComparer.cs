@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     internal class RenderOrderKeyComparer : IComparer<Renderable>
     {

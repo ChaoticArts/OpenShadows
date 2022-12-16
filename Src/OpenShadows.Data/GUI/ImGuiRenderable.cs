@@ -1,12 +1,9 @@
-﻿using OpenShadows.Core;
-using OpenShadows.Input;
-using System;
-using System.Diagnostics;
+﻿using OpenShadows.Data.Input;
+using OpenShadows.Data.Rendering;
 using System.Numerics;
 using Veldrid;
-using Veldrid.Sdl2;
 
-namespace OpenShadows.GUI
+namespace OpenShadows.Data.GUI
 {
     public class ImGuiRenderable : Renderable, IUpdateable
     {
@@ -22,7 +19,7 @@ namespace OpenShadows.GUI
 
         public void WindowResized(int width, int height) => _imguiRenderer.WindowResized(width, height);
 
-        internal override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void CreateDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             if (_imguiRenderer == null)
             {
@@ -44,12 +41,12 @@ namespace OpenShadows.GUI
             return new RenderOrderKey(ulong.MaxValue);
         }
 
-        internal override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void Render(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             _imguiRenderer.Render(gd, cl);
         }
 
-        internal override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void UpdatePerFrameResources(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
         }
 

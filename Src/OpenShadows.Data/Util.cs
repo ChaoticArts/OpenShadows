@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using Veldrid;
 using Veldrid.Utilities;
 
-namespace OpenShadows
+namespace OpenShadows.Data
 {
     internal static class Util
     {

@@ -1,7 +1,10 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.IO;
+using Veldrid;
 
-namespace Veldrid.ImageSharp
+namespace OpenShadows.Data.Rendering.ImageSharp
 {
     public class ImageSharpTexture
     {

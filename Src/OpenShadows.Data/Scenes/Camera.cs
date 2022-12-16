@@ -1,12 +1,13 @@
 ﻿using ImGuiNET;
-using OpenShadows.Input;
+using OpenShadows.Data.Input;
+using OpenShadows.Data.Rendering;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Veldrid;
 using Veldrid.Sdl2;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Scenes
 {
     public class Camera : IUpdateable
     {

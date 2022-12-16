@@ -1,9 +1,9 @@
-﻿using System;
+﻿using OpenShadows.Data.Rendering.ImageSharp;
+using System;
 using System.Collections.Generic;
 using Veldrid;
-using Veldrid.ImageSharp;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     // Non-thread-safe cache for resources.
     internal static class StaticResourceCache

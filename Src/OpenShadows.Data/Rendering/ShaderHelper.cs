@@ -1,10 +1,11 @@
-﻿using System;
+﻿using OpenShadows.Data.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Veldrid;
 using Veldrid.SPIRV;
 
-namespace OpenShadows.Core
+namespace OpenShadows.Data.Rendering
 {
     public static class ShaderHelper
     {

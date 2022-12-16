@@ -88,15 +88,15 @@ namespace OpenShadows.FileFormats.Levels
 
             // ============================
             //  Debugging stuff
-            bool runTests = false;
+            bool runTests = true;
             List<string> objUnderTest = new List<string>();
-            objUnderTest.Add("10N9999_B1");
+            /*objUnderTest.Add("10N9999_B1");
             objUnderTest.Add("04N9999_MH");
             objUnderTest.Add("11N9999_TP");
             objUnderTest.Add("01N9999_21");
             objUnderTest.Add("01N9999_22");
             objUnderTest.Add("36N9999_08");
-            objUnderTest.Add("01O9999_04");
+            objUnderTest.Add("01O9999_04");*/
             objUnderTest.Add("01N9999_04");
             // ============================
 
@@ -117,11 +117,11 @@ namespace OpenShadows.FileFormats.Levels
 
                 Log.Debug("Name: " + level3dmObject.Name);
                 Log.Debug($"  {nameof(level3dmObject.VectorCount)}: {level3dmObject.VectorCount}");
-                Log.Debug($"  {nameof(level3dmObject.Count1)}: {level3dmObject.Count1}");
+                Log.Debug($"  {nameof(level3dmObject.GroupsCount)}: {level3dmObject.GroupsCount}");
                 Log.Debug($"  {nameof(level3dmObject.SurfaceVertexCount)}: {level3dmObject.SurfaceVertexCount}");
-                Log.Debug($"  {nameof(level3dmObject.Count2)}: {level3dmObject.Count2}");
+                Log.Debug($"  {nameof(level3dmObject.QuadCount)}: {level3dmObject.QuadCount}");
                 Log.Debug($"  {nameof(level3dmObject.Count3)}: {level3dmObject.Count3}");
-                Log.Debug($"  {nameof(level3dmObject.Count4)}: {level3dmObject.Count4}");
+                Log.Debug($"  {nameof(level3dmObject.AdditionalQuadCount)}: {level3dmObject.AdditionalQuadCount}");
 
                 // Read object data
                 f.BaseStream.Position = level3dmObject.DataOffset;
@@ -206,7 +206,7 @@ namespace OpenShadows.FileFormats.Levels
         private static void BuildAdditionalQuads(BinaryReader f, Dictionary<uint, Level3dmMaterial> materialLookup, Level3dmObject levelObject)
         {
             f.BaseStream.Position = levelObject.DataOffset + levelObject.AdditionalMaterialsOffset;
-            for (int i = 0; i < levelObject.Count4; i++)
+            for (int i = 0; i < levelObject.AdditionalQuadCount; i++)
             {
                 uint unk = f.ReadUInt32();
                 uint materialOffset = f.ReadUInt32();
@@ -224,6 +224,11 @@ namespace OpenShadows.FileFormats.Levels
                     var material = materialLookup[materialOffset];
                     copy.Material = material;
                 }
+                copy.V1 = originalQuad.AltV1;
+                copy.V2 = originalQuad.AltV2;
+                copy.V3 = originalQuad.AltV3;
+                copy.V4 = originalQuad.AltV4;
+                Log.Verbose($"Loaded additional quad with material '{copy.Material.Name}' (copying original quad '{originalQuad}')");
                 levelObject.QuadList.Add(copy);
             }
         }
@@ -235,8 +240,8 @@ namespace OpenShadows.FileFormats.Levels
 
             f.BaseStream.Position = levelObject.DataOffset + levelObject.MaterialsOffset;
 
-            Level3dmQuad[] quadList = new Level3dmQuad[levelObject.Count2];
-            for (int i = 0; i < levelObject.Count2; i++)
+            Level3dmQuad[] quadList = new Level3dmQuad[levelObject.QuadCount];
+            for (int i = 0; i < levelObject.QuadCount; i++)
             {
                 long relativeOffset = f.BaseStream.Position - levelObject.DataOffset;                
                 ushort _unk = f.ReadUInt16();
@@ -260,13 +265,17 @@ namespace OpenShadows.FileFormats.Levels
 
                 uint _unk4 = f.ReadUInt32();
                 uint _unk5 = f.ReadUInt32();
+                Log.Verbose($"  Quad {i}: _unk4 {_unk4}");
+                Log.Verbose($"  Quad {i}: _unk5 {_unk5}");
 
                 // Flags or "type", but not yet clear what it means
                 ushort flags = f.ReadUInt16();
+                Log.Verbose($"  Quad {i}: Flags {flags}");
 
                 uint surfaceIndex = f.ReadUInt32();
                 uint materialOffset = f.ReadUInt32();
                 uint unk = f.ReadUInt32();
+                Log.Verbose($"  Quad {i}: unk {unk}");
 
                 var surface = surfaceList[surfaceIndex];
 
@@ -279,6 +288,13 @@ namespace OpenShadows.FileFormats.Levels
                 if (quadList[i].IsTriangle == false)
                 {
                     quadList[i].V4 = vertex4;
+                }
+                quadList[i].AltV1 = unk_index1;
+                quadList[i].AltV2 = unk_index2;
+                quadList[i].AltV3 = unk_index3;
+                if (quadList[i].IsTriangle == false)
+                {
+                    quadList[i].AltV4 = unk_index4;
                 }
                 if (materialLookup.ContainsKey(materialOffset))
                 {
@@ -347,26 +363,29 @@ namespace OpenShadows.FileFormats.Levels
 
         private static void ReadUnknownLevelObjectData(BinaryReader f, Level3dmObject levelObject)
         {
-            for (int j = 0; j < levelObject.Count1; j++)
+            for (int j = 0; j < levelObject.GroupsCount; j++)
             {
+                byte[] bytes = f.ReadBytes(12);
+                Log.Verbose($"{j}: {BitConverter.ToString(bytes)}");
+
                 /*ushort x = f.ReadUInt16();
                 ushort y = f.ReadUInt16();
                 ushort z = f.ReadUInt16();
                 ushort x2 = f.ReadUInt16();
                 ushort y2 = f.ReadUInt16();
                 ushort z2 = f.ReadUInt16();
-                Console.WriteLine($"{j}: {x},{y},{z},{x2},{y2},{z2}");*/
+                Log.Verbose($"{j}: {x},{y},{z},{x2},{y2},{z2}");*/
 
                 /*int a = f.ReadUInt16();
                 int b = f.ReadUInt16();
                 int y = f.ReadInt32();
                 int z = f.ReadInt32();
-                Console.WriteLine($"{j}: {a},{b},{y},{z} ({(j + levelObject.VertexCount)})");*/
+                Log.Verbose($"{j}: {a},{b},{y},{z} ({(j + levelObject.VertexCount)})");*/
 
-                int x = f.ReadInt32();
+                /*int x = f.ReadInt32();
                 int y = f.ReadInt32();
                 int z = f.ReadInt32();
-                Log.Verbose($"{j}: {x},{y},{z} ({(j + levelObject.VectorCount)})");
+                Log.Verbose($"{j}: {x},{y},{z}");*/
             }
         }
 
@@ -409,12 +428,12 @@ namespace OpenShadows.FileFormats.Levels
                 levelObject.Name = name;
 
                 levelObject.VectorCount = f.ReadUInt16();
-                levelObject.Count1 = f.ReadUInt16();
+                levelObject.GroupsCount = f.ReadUInt16();
 
                 levelObject.SurfaceVertexCount = f.ReadUInt16();
-                levelObject.Count2 = f.ReadUInt16();
+                levelObject.QuadCount = f.ReadUInt16();
                 levelObject.Count3 = f.ReadUInt16();
-                levelObject.Count4 = f.ReadUInt16();
+                levelObject.AdditionalQuadCount = f.ReadUInt16();
 
                 levelObject.BoundingBox.CenterX = f.ReadInt32();
                 levelObject.BoundingBox.CenterY = f.ReadInt32();
@@ -522,11 +541,11 @@ namespace OpenShadows.FileFormats.Levels
             internal string Name;
 
             internal int VectorCount;
-            internal int Count1;
+            internal int GroupsCount;
             internal int SurfaceVertexCount;
-            internal int Count2;
+            internal int QuadCount;
             internal int Count3;
-            internal int Count4;
+            internal int AdditionalQuadCount;
 
             internal uint DataOffset;
             internal uint VertexBytes;
@@ -602,6 +621,11 @@ namespace OpenShadows.FileFormats.Levels
             public int V2;
             public int V3;
             public int V4;
+
+            public int AltV1;
+            public int AltV2;
+            public int AltV3;
+            public int AltV4;
 
             public Level3dmMaterial Material;
 

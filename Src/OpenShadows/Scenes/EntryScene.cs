@@ -1,16 +1,12 @@
 ﻿using ImGuiNET;
-using OpenShadows.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using OpenShadows.Data.Core;
+using OpenShadows.Data.Rendering;
+using OpenShadows.Data.Rendering.ImageSharp;
+using OpenShadows.Data.Scenes;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Veldrid;
-using Veldrid.ImageSharp;
 using Veldrid.Sdl2;
 using Veldrid.Utilities;
-using Vulkan.Xlib;
 
 namespace OpenShadows.Scenes
 {
@@ -52,7 +48,7 @@ namespace OpenShadows.Scenes
             ImGui.PopStyleVar();
         }
 
-        internal override void CreateAllDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
+        public override void CreateAllDeviceObjects(GraphicsDevice gd, CommandList cl, SceneContext sc)
         {
             base.CreateAllDeviceObjects(gd, cl, sc);
 
@@ -63,7 +59,7 @@ namespace OpenShadows.Scenes
             }
         }
 
-        internal override void DestroyAllDeviceObjects()
+        public override void DestroyAllDeviceObjects()
         {
             base.DestroyAllDeviceObjects();
 
@@ -78,6 +74,8 @@ namespace OpenShadows.Scenes
         private void LoadMesh()
         {
             string fn = "01O9999_03.obj";
+            fn = "01N9999_04.obj";
+            //fn = "level.obj";
 
             ObjParser parser = new ObjParser();
             using (FileStream objStream = File.OpenRead(AssetHelper.GetPath("Models/" + fn)))
@@ -91,12 +89,12 @@ namespace OpenShadows.Scenes
 
                 foreach (ObjFile.MeshGroup group in atriumFile.MeshGroups)
                 {
-                    Vector3 scale = new Vector3(0.001f);
+                    Vector3 scale = new Vector3(0.01f);
                     ConstructedMeshInfo mesh = atriumFile.GetMesh(group);
                     MaterialDefinition materialDef = atriumMtls.Definitions[mesh.MaterialName];
                     ImageSharpTexture overrideTextureData = null;
                     ImageSharpTexture alphaTexture = null;
-                    //if (materialDef.DiffuseTexture != null)
+                    if (materialDef.DiffuseTexture != null)
                     {
                         string texturePath = AssetHelper.GetPath("Models/" + materialDef.DiffuseTexture);
                         overrideTextureData = LoadTexture(texturePath, true);

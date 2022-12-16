@@ -134,7 +134,7 @@ namespace OpenShadows.Data.Game
                 sw.WriteLine("mtllib level.mtl");
                 sw.WriteLine();
 
-                sw.WriteLine("o " + item.Name);
+                sw.WriteLine("g " + item.Name);
                 for (int i = 0; i < item.Vertices.Length; i++)
                 {
                     var v = item.Vertices[i];
