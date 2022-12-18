@@ -1,97 +1,207 @@
-﻿using System;
+﻿using OpenShadows.Data.Game;
+using SharpDX;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using static GLSLang.SpirV.Instruction;
 
 namespace OpenShadows.FileFormats.Text
 {
-	public static class XdfExtractor
-	{
-		public static List<Tuple<int, string>> ExtractTexts(byte[] data)
-		{
-			using var f = new BinaryReader(new MemoryStream(data));
+    public static class XdfExtractor
+    {
+        /// <summary>
+        /// The keywords are NOT part of the XDF, yet they must still be relevant.
+        /// 
+        /// They're either hardcoded or part of another file.
+        /// </summary>
+        public static Dialog ExtractTexts(byte[] data)
+        {
+            using var f = new BinaryReader(new MemoryStream(data));
 
-			if (!CheckSignature(f))
-			{
-				throw new InvalidDataException("Not a valid XDF file");
-			}
+            if (!CheckSignature(f))
+            {
+                throw new InvalidDataException("Not a valid XDF file");
+            }
 
-			var strings = new List<Tuple<int, string>>();
+            Dialog dialog = new Dialog();
 
-			f.ReadBytes(0x20);
+            //f.ReadBytes(0x20);
 
-			int offsetOfStrings = f.ReadInt32();
-			f.BaseStream.Seek(offsetOfStrings, SeekOrigin.Begin);
+            var unk_a = f.ReadInt16();
+            var unk_b = f.ReadInt16();
 
-			for (int i = 0; f.BaseStream.Position < f.BaseStream.Length - 1; i++)
-			{
-				strings.Add(new Tuple<int, string>(i, ExtractString(f)));
-			}
+            var off1 = f.ReadInt32();
+            var topicsOffset = f.ReadInt32();
+            var topicDialogOffset = f.ReadInt32();
+            var dialogEntriesOffset = f.ReadInt32();
 
-			return strings;
-		}
+            var unk = f.ReadInt32(); // 0x00 0x00 0x00 0x00
+            var dialogPagesOffset = f.ReadInt32();
 
-		private static bool CheckSignature(BinaryReader br)
-		{
-			byte x = br.ReadByte();
-			byte d = br.ReadByte();
-			byte f = br.ReadByte();
-			byte s = br.ReadByte();
+            var unk2 = f.ReadInt32(); // 0x00 0x00 0x00 0x00
+            int offsetOfStrings = f.ReadInt32();
 
-			return x == 0x58 && d == 0x44 && f == 0x46 && s == 0x20;
-		}
+            // What about JOKES.LXT and RUMORS.LXT??
 
-		private static string ExtractString(BinaryReader br)
-		{
-			var sb = new StringBuilder();
+            // Could be name or shop/NPC identifier?
+            f.BaseStream.Seek(off1, SeekOrigin.Begin);            
+            _ = f.ReadInt32();      // Name offset?
+            _ = f.ReadUInt16();     // NPC/Location Index? (Animated screen in background => MASHOP.BOX ?)
+            _ = f.ReadUInt16();
 
-			byte b;
-			do
-			{
-				b = br.ReadByte();
+            f.BaseStream.Seek(topicsOffset, SeekOrigin.Begin);
+            while (f.BaseStream.Position < topicDialogOffset)
+            {
+                DialogTopic topic = new DialogTopic();
 
-				switch (b)
-				{
-					case 0x25:
-						sb.Append("#");
-						break;
+                var topicIndex = f.ReadUInt16();
+                if (topicIndex == 0)
+                {
+                    break;
+                }
 
-					case 0x81:
-						sb.Append("ü");
-						break;
+                topic.TopicIndex = topicIndex;
+                var offset = f.ReadInt32();
+                topic.Entries.AddRange(ReadTopicEntries(f, topicDialogOffset, offset, dialogEntriesOffset, dialogPagesOffset, offsetOfStrings));
+                dialog.Topics.Add(topic);
+            }
 
-					case 0x9a:
-						sb.Append("Ü");
-						break;
+            return dialog;
+        }
 
-					case 0x84:
-						sb.Append("ä");
-						break;
+        private static List<DialogEntry> ReadTopicEntries(BinaryReader f, int topicDialogOffset, int offset, 
+            int dialogEntriesOffset, int dialogPagesOffset, int offsetOfStrings)
+        {
+            var curPos = f.BaseStream.Position;
+            try
+            {
+                List<DialogEntry> result = new List<DialogEntry>();
+                f.BaseStream.Seek(topicDialogOffset + offset, SeekOrigin.Begin);
 
-					case 0x8e:
-						sb.Append("Ä");
-						break;
+                int dialogoffset = f.ReadInt32();
+                while (dialogoffset != -1)
+                {
+                    result.Add(ReadTopicEntry(f, dialogEntriesOffset, dialogoffset, dialogPagesOffset, offsetOfStrings));
 
-					case 0x94:
-						sb.Append("ö");
-						break;
+                    // Relative offsets of DialogEntries per topic (incremental)
+                    // Then => See DEADPOIN.LXT
+                    dialogoffset = f.ReadInt32();
+                }
 
-					case 0x99:
-						sb.Append("Ö");
-						break;
+                return result;
+            }
+            finally
+            {
+                f.BaseStream.Seek(curPos, SeekOrigin.Begin);
+            }
+        }
 
-					case 0xe1:
-						sb.Append("ß");
-						break;
+        private static DialogEntry ReadTopicEntry(BinaryReader f, int dialogEntriesOffset, int dialogoffset, 
+            int dialogPagesOffset, int offsetOfStrings)
+        {
+            var curPos = f.BaseStream.Position;
+            try
+            {
+                f.BaseStream.Seek(dialogEntriesOffset + dialogoffset, SeekOrigin.Begin);
 
-					default:
-						sb.Append(Encoding.ASCII.GetString(new[] { b }));
-						break;
-				}
-			}
-			while (b != 0x00);
+                DialogEntry entry = new DialogEntry();
 
-			return sb.ToString();
-		}
-	}
+                ushort s_control = f.ReadUInt16();      // 0x01 => entry; 0x03 => end
+                ushort s_unk = f.ReadUInt16();
+                while (s_control != 0x03)
+                {
+                    int s_offset = f.ReadInt32();
+
+                    // Read pages per entry
+                    DialogEntryPage page = ReadDialogEntryPage(f, dialogPagesOffset, s_offset, offsetOfStrings);
+                    entry.Pages.Add(page);
+
+                    s_control = f.ReadUInt16();
+                    ushort pad2 = f.ReadUInt16();
+                }
+                int pad4 = f.ReadInt32();
+
+                return entry;
+            }
+            finally
+            {
+                f.BaseStream.Seek(curPos, SeekOrigin.Begin);
+            }
+        }
+
+        private static DialogEntryPage ReadDialogEntryPage(BinaryReader f, int dialogEntriesOffset, int offset, int offsetOfStrings)
+        {
+            long curPos = f.BaseStream.Position;
+
+            try
+            {
+                f.BaseStream.Seek(dialogEntriesOffset + offset, SeekOrigin.Begin);
+
+                DialogEntryPage entry = new DialogEntryPage();
+
+                ushort s_speaker = f.ReadUInt16();     // 0x04 => end?
+                while (s_speaker != 0x04)
+                {
+                    var stringEntry = new DialogStringEntry();
+                    stringEntry.Speaker = s_speaker switch
+                    {
+                        0x01 => DialogStringEntryType.Party,
+                        0x02 => DialogStringEntryType.Other,
+                        0x03 => DialogStringEntryType.Emote,
+                        _ => DialogStringEntryType.Other
+                    };
+
+                    var s_unk4_a = f.ReadUInt16();
+
+                    var shouldEndDialog = f.ReadUInt16();
+                    // 0x05 => end of dialog?
+                    stringEntry.ShouldEndDialog = shouldEndDialog != 0x00;
+
+                    int s_pad5 = f.ReadInt32();
+
+                    var stringTableOffset = f.ReadInt32();
+                    stringEntry.String = GetString(f, offsetOfStrings, stringTableOffset);
+                    entry.Strings.Add(stringEntry);
+
+                    s_speaker = f.ReadUInt16();
+                }
+
+                int e_pad2 = f.ReadInt32();
+                int e_pad3 = f.ReadInt32();
+                int e_pad4 = f.ReadInt32();
+
+                return entry;
+            }
+            finally
+            {
+                f.BaseStream.Seek(curPos, SeekOrigin.Begin);
+            }
+        }
+
+        private static string GetString(BinaryReader f, int offsetOfStrings, int relativeOffset)
+        {
+            long curPos = f.BaseStream.Position;
+
+            try
+            {
+                f.BaseStream.Seek(offsetOfStrings + relativeOffset, SeekOrigin.Begin);
+                return Utils.ExtractString(f);
+            }
+            finally
+            {
+                f.BaseStream.Seek(curPos, SeekOrigin.Begin);
+            }
+        }
+
+        private static bool CheckSignature(BinaryReader br)
+        {
+            byte x = br.ReadByte();
+            byte d = br.ReadByte();
+            byte f = br.ReadByte();
+            byte s = br.ReadByte();
+
+            return x == 0x58 && d == 0x44 && f == 0x46 && s == 0x20;
+        }
+    }
 }

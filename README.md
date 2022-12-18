@@ -45,7 +45,7 @@ This project is in the *very* early stages. There is still a long way to go befo
 :white_large_square: `.RAW` audio (raw PCM unsigned 8-bit, mono 22050 Hz) <br>
 :white_large_square: `.HMI` audio (Human Machine Interfaces format) <br>
 :white_check_mark:   `.LXT` text definition <br>
-:white_large_square: `.XDF` dialogue definition <br>
+:white_check_mark:   `.XDF` dialogue definition <br>
 :white_large_square: `.DAT` different types of gamedata <br>
 :white_large_square: `.NPC` joinable npc data <br>
 :white_large_square: `.HTT` some form of hyper text <br>

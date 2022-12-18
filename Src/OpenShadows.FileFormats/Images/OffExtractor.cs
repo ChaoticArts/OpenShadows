@@ -27,9 +27,6 @@ namespace OpenShadows.FileFormats.Images
 		/// The data in the OFF does not match to pixels, but it may match to the cells in
 		/// the battle screen (unconfirmed).
 		/// </summary>
-		/// <param name="data"></param>
-		/// <returns></returns>
-		/// <exception cref="InvalidDataException"></exception>
 		public static List<OffsetData> ExtractOffsets(byte[] data)
 		{
 			if (data.Length % 26 != 0)
