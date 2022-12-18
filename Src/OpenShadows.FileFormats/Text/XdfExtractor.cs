@@ -15,7 +15,7 @@ namespace OpenShadows.FileFormats.Text
         /// 
         /// They're either hardcoded or part of another file.
         /// </summary>
-        public static Dialog ExtractTexts(byte[] data)
+        public static Dialog ExtractDialog(byte[] data)
         {
             using var f = new BinaryReader(new MemoryStream(data));
 
@@ -45,9 +45,10 @@ namespace OpenShadows.FileFormats.Text
             // What about JOKES.LXT and RUMORS.LXT??
 
             // Could be name or shop/NPC identifier?
-            f.BaseStream.Seek(off1, SeekOrigin.Begin);            
-            _ = f.ReadInt32();      // Name offset?
-            _ = f.ReadUInt16();     // NPC/Location Index? (Animated screen in background => MASHOP.BOX ?)
+            f.BaseStream.Seek(off1, SeekOrigin.Begin);
+            // Name offset into string table?
+            dialog.CharName = GetString(f, offsetOfStrings, f.ReadInt32());
+            dialog.HeadIndex = f.ReadUInt16();     // NPC/Location Index? (Index into HEADS.NVF, but maybe also index into animated screen in background => MASHOP.BOX ?; )
             _ = f.ReadUInt16();
 
             f.BaseStream.Seek(topicsOffset, SeekOrigin.Begin);
@@ -63,7 +64,10 @@ namespace OpenShadows.FileFormats.Text
 
                 topic.TopicIndex = topicIndex;
                 var offset = f.ReadInt32();
-                topic.Entries.AddRange(ReadTopicEntries(f, topicDialogOffset, offset, dialogEntriesOffset, dialogPagesOffset, offsetOfStrings));
+                if (offset != -1)
+                {
+                    topic.Entries.AddRange(ReadTopicEntries(f, topicDialogOffset, offset, dialogEntriesOffset, dialogPagesOffset, offsetOfStrings));
+                }
                 dialog.Topics.Add(topic);
             }
 

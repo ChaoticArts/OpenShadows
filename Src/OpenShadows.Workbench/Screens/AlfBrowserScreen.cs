@@ -30,7 +30,7 @@ namespace OpenShadows.Workbench.Screens
 
         private string ReadableAlfPath = "DATA\\RIVA.ALF";
 
-        private string SearchString = "ACE";
+        private string SearchString = "XDF";
 
         private int SelectedEntry = -1;
 
@@ -38,9 +38,31 @@ namespace OpenShadows.Workbench.Screens
 
         private GraphicsDevice Gd;
 
+        private bool alreadyTriedOpeningDefaultAlf = false;
+
         public void Update(float dt)
         {
-            // explicitly do nothing
+            if (alreadyTriedOpeningDefaultAlf == false &&
+                Alf == null &&
+                File.Exists(ReadableAlfPath))
+            {
+                alreadyTriedOpeningDefaultAlf = true;
+                OpenAlf();
+
+                if (Alf != null)
+                {
+                    AlfEntry entry = Alf.Entries
+                        .Where(x => x.Name.Contains("TAVERN01.XDF", StringComparison.InvariantCultureIgnoreCase))
+                        .FirstOrDefault();
+                    if (entry != null)
+                    {
+                        SelectEntry(entry);
+
+                        byte[] data = Alf.Entries[SelectedEntry].GetContents();
+                        _ = XdfExtractor.ExtractDialog(data);
+                    }
+                }
+            }
         }
 
         public void Render(Sdl2Window window, GraphicsDevice gd, ImGuiRenderer imGuiRenderer)
@@ -377,7 +399,7 @@ namespace OpenShadows.Workbench.Screens
             }
             if (string.Equals(textType, "xdf", StringComparison.OrdinalIgnoreCase))
             {
-                textTuples = XdfExtractor.ExtractTexts(data);
+                //var dialog = XdfExtractor.ExtractTexts(data);
             }
 
             if (textTuples != null)
@@ -472,15 +494,6 @@ namespace OpenShadows.Workbench.Screens
         {
             Alf = new AlfArchive(ReadableAlfPath);
             SelectedEntry = -1;
-
-            /*
-			foreach (AlfEntry entry in Alf.Entries.Where(e => e.Name.ToUpper().EndsWith("ACE")))
-			{
-				byte[] data = entry.GetContents();
-				string path = Path.Combine(@"Y:\Projekte\Reverse Engineering\NLT\OpenShadows", entry.Name);
-				File.WriteAllBytes(path, data);
-			}
-			*/
         }
 
         private void CloseAlf()
@@ -497,6 +510,19 @@ namespace OpenShadows.Workbench.Screens
             {
                 HasImage = false;
                 CurrentImage?.Dispose();
+            }
+        }
+
+        private void SelectEntry(AlfEntry entry)
+        {
+            // Naive lookup
+            for (int i = 0; i < Alf.Entries.Count; i++)
+            {
+                if (Alf.Entries[i] == entry) 
+                { 
+                    SelectEntry(i);
+                    return;
+                }
             }
         }
     }
