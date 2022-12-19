@@ -79,9 +79,14 @@ namespace OpenShadows.Data.Game
         public List<DialogEntry> Entries { get; set; } = new List<DialogEntry>();
     }
 
-    public class Dialog
+    public class DialogDefinition
     {
         public string CharName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Index into HEADS.NVF
+        /// </summary>
+        public ushort HeadIndex { get; set; } = ushort.MaxValue;
 
         public List<DialogTopic> Topics { get; set; } = new List<DialogTopic>();
     }

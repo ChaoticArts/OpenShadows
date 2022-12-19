@@ -15,7 +15,7 @@ namespace OpenShadows.FileFormats.Text
         /// 
         /// They're either hardcoded or part of another file.
         /// </summary>
-        public static Dialog ExtractDialog(byte[] data)
+        public static DialogDefinition ExtractDialog(byte[] data)
         {
             using var f = new BinaryReader(new MemoryStream(data));
 
@@ -24,7 +24,7 @@ namespace OpenShadows.FileFormats.Text
                 throw new InvalidDataException("Not a valid XDF file");
             }
 
-            Dialog dialog = new Dialog();
+            DialogDefinition dialog = new DialogDefinition();
 
             //f.ReadBytes(0x20);
 
