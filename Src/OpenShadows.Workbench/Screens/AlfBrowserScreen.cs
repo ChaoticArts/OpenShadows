@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
 using OpenShadows.Data;
+using OpenShadows.Data.Game;
 using OpenShadows.Data.Graphic;
 using OpenShadows.FileFormats;
 using OpenShadows.FileFormats.Archive;
@@ -52,14 +53,14 @@ namespace OpenShadows.Workbench.Screens
                 if (Alf != null)
                 {
                     AlfEntry entry = Alf.Entries
-                        .Where(x => x.Name.Contains("TAVERN01.XDF", StringComparison.InvariantCultureIgnoreCase))
+                        .Where(x => x.Name.Contains("CAMP01.BOB", StringComparison.InvariantCultureIgnoreCase))
                         .FirstOrDefault();
                     if (entry != null)
                     {
                         SelectEntry(entry);
 
                         byte[] data = Alf.Entries[SelectedEntry].GetContents();
-                        _ = XdfExtractor.ExtractDialog(data);
+                        _ = BobExtractor.ExtractImage(data);
                     }
                 }
             }
@@ -203,11 +204,11 @@ namespace OpenShadows.Workbench.Screens
 
                 if (string.Equals(entry.Name.End(3), "LXT", StringComparison.Ordinal))
                 {
-                    DrawTextViewer("lxt");
+                    DrawLxtViewer("lxt");
                 }
                 if (string.Equals(entry.Name.End(3), "XDF", StringComparison.Ordinal))
                 {
-                    DrawTextViewer("xdf");
+                    DrawDialogViewer();
                 }
 
                 if (string.Equals(entry.Name.End(3), "DAT", StringComparison.Ordinal))
@@ -378,31 +379,58 @@ namespace OpenShadows.Workbench.Screens
             }
         }
 
-        private void DrawTextViewer(string textType)
+        private void DrawDialogViewer()
         {
             byte[] data = Alf.Entries[SelectedEntry].GetContents();
 
-            List<Tuple<int, string>> textTuples = null;
+            var dialog = XdfExtractor.ExtractDialog(data);
+
+            if (dialog != null)
+            {
+                ImGui.BeginChild("##dialog_overview");
+
+                ImGui.TextUnformatted("Dialog: " + dialog.CharName);
+                ImGui.Separator();
+
+                if (ImGui.Button("Start Dialog"))
+                {
+                    var dialogProgress = new DialogProgress();
+                    var topicLxtData = Alf.Entries.Where(e => e.Name == "TOPIC.LXT").FirstOrDefault().GetContents();
+                    var topicStringTable = LxtExtractor.ExtractStringTable(topicLxtData);
+                    var deadpointLxtData = Alf.Entries.Where(e => e.Name == "DEADPOIN.LXT").FirstOrDefault().GetContents();
+                    var deadpointStringTable = LxtExtractor.ExtractStringTable(deadpointLxtData);
+
+                    int[] knownTopics = dialog.GetTopicIds();
+                    Program.MainScreen.ShowDialogScreen(new Dialog(dialog, dialogProgress, knownTopics,
+                        topicStringTable, deadpointStringTable));
+                }
+
+                ImGui.EndChild();
+            }
+        }
+
+        private void DrawLxtViewer(string textType)
+        {
+            byte[] data = Alf.Entries[SelectedEntry].GetContents();
+
+            StringTable stringTable = null;
 
             if (string.Equals(textType, "lxt", StringComparison.OrdinalIgnoreCase))
             {
+                // These aren't actually LXT files, but serve the same purpose
                 if (Alf.Entries[SelectedEntry].Name == "ITEMNAME.LXT" ||
                     Alf.Entries[SelectedEntry].Name == "PRINTER.LXT" ||
                     Alf.Entries[SelectedEntry].Name == "MONNAMES.LXT")
                 {
-                    textTuples = LxtExtractor.ExtractRawTexts(data);
+                    stringTable = LxtExtractor.ExtractRawStringTable(data);
                 }
                 else
                 {
-                    textTuples = LxtExtractor.ExtractTexts(data);
+                    stringTable = LxtExtractor.ExtractStringTable(data);
                 }
             }
-            if (string.Equals(textType, "xdf", StringComparison.OrdinalIgnoreCase))
-            {
-                //var dialog = XdfExtractor.ExtractTexts(data);
-            }
 
-            if (textTuples != null)
+            if (stringTable != null)
             {
                 ImGui.BeginChild("##text_list");
 
@@ -413,12 +441,14 @@ namespace OpenShadows.Workbench.Screens
 
                 ImGui.SetColumnWidth(0, 50.0f);
 
-                foreach ((int idx, string text) in textTuples)
+                for (int i = 0; i < stringTable.Count; i++)
                 {
-                    if (ImGui.Selectable(idx.ToString(), false, ImGuiSelectableFlags.SpanAllColumns))
+                    var str = stringTable[i];
+
+                    if (ImGui.Selectable(i.ToString(), false, ImGuiSelectableFlags.SpanAllColumns))
                     { }
                     ImGui.NextColumn();
-                    ImGui.TextUnformatted(text); ImGui.NextColumn();
+                    ImGui.TextUnformatted(str); ImGui.NextColumn();
                 }
 
                 ImGui.Columns(1);

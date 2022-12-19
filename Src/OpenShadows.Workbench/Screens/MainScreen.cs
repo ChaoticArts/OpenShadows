@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using ImGuiNET;
+using OpenShadows.Data.Game;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
@@ -19,6 +22,7 @@ namespace OpenShadows.Workbench.Screens
 
 		private ImGuiRenderer ImGuiRenderer;
 
+		private int nextScreen = -1;
 		private int CurrentScreen = 0;
 
 		private List<IScreen> Screens = new List<IScreen>();
@@ -53,9 +57,43 @@ namespace OpenShadows.Workbench.Screens
 
 			Screens.Add(new AlfBrowserScreen());
 			Screens.Add(new LevelBrowserScreen());
-		}
+            Screens.Add(new DialogScreen());
+        }
 
-		public void Dispose()
+		public void SetActiveScreen(int index)
+		{
+			if (index >= 0 && index < Screens.Count) 
+			{
+                nextScreen = index;
+            }
+        }
+
+        public void SetActiveScreen(IScreen screen)
+        {
+			for (int i = 0; i < Screens.Count; i++)
+			{
+				if (Screens[i] == screen) 
+				{ 
+					SetActiveScreen(i);
+					return;
+				}
+			}
+        }
+
+        public void ShowDialogScreen(Dialog newDialog)
+        {
+            var dialogScreen = Screens
+				.Where(s => s is DialogScreen)
+				.Select(s => s as DialogScreen)
+				.FirstOrDefault();
+			if (dialogScreen != null) 
+			{
+				dialogScreen.SetActiveDialog(newDialog);
+				SetActiveScreen(dialogScreen);
+			}
+        }
+
+        public void Dispose()
 		{
 			Cl?.Dispose();
 			Gd?.Dispose();
@@ -117,26 +155,35 @@ namespace OpenShadows.Workbench.Screens
 				{
 					if (ImGui.MenuItem("ALF-Browser") && CurrentScreen != 0)
 					{
-						CurrentScreen = 0;
+                        SetActiveScreen(0);
 					}
 
 					if (ImGui.MenuItem("Level Browser") && CurrentScreen != 1)
 					{
-						CurrentScreen = 1;
+                        SetActiveScreen(1);
 					}
 
-					ImGui.EndMenu();
+                    if (ImGui.MenuItem("Dialog Simulator") && CurrentScreen != 2)
+                    {
+                        SetActiveScreen(2);
+                    }
+
+                    ImGui.EndMenu();
 				}
 
 				ImGui.EndMainMenuBar();
 			}
+
+			if (nextScreen != -1)
+			{
+				CurrentScreen = nextScreen;
+				nextScreen = -1;
+            }
 
 			Screens[CurrentScreen]?.Update(1.0f / 60.0f);
 			Screens[CurrentScreen]?.Render(Window, Gd, ImGuiRenderer);
 
 			ImGui.PopStyleVar();
 		}
-
-		private readonly byte[] BufferAlfFilepath = new byte[1024];
 	}
 }

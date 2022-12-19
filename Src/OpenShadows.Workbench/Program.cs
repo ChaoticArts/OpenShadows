@@ -6,6 +6,8 @@ namespace OpenShadows.Workbench
 {
 	internal static class Program
 	{
+        internal static MainScreen MainScreen;
+
 		private static void Main()
 		{
             var config = new LoggerConfiguration()
@@ -20,8 +22,10 @@ namespace OpenShadows.Workbench
 
             Log.Logger = config.CreateLogger();
 
-            using var ms = new MainScreen();
-			ms.Run();
-		}
+            using (MainScreen = new MainScreen())
+            {
+                MainScreen.Run();
+            }
+        }
 	}
 }

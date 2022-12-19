@@ -1,8 +1,11 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+#nullable enable
 
 namespace OpenShadows.Data.Game
 {
@@ -29,7 +32,7 @@ namespace OpenShadows.Data.Game
 
     public class DialogEntryPage
     {
-        public List<DialogStringEntry> Strings = new List<DialogStringEntry>();
+        public List<DialogStringEntry> Strings = new List<DialogStringEntry>();        
 
         public override string ToString()
         {
@@ -51,6 +54,14 @@ namespace OpenShadows.Data.Game
     public class DialogEntry
     {
         public List<DialogEntryPage> Pages = new List<DialogEntryPage>();
+
+        public bool ShouldEndDialogAfterLastPage
+        {
+            get
+            {
+                return Pages.Last().Strings.Last().ShouldEndDialog;
+            }
+        }
 
         public override string ToString()
         {
@@ -89,5 +100,19 @@ namespace OpenShadows.Data.Game
         public ushort HeadIndex { get; set; } = ushort.MaxValue;
 
         public List<DialogTopic> Topics { get; set; } = new List<DialogTopic>();
+
+        public DialogTopic? FindTopicById(int id)
+        {
+            return Topics
+                .Where(t => t.TopicIndex == id)
+                .FirstOrDefault();
+        }
+
+        public int[] GetTopicIds()
+        {
+            return Topics
+                .Select(t => t.TopicIndex)
+                .ToArray();
+        }
     }
 }
