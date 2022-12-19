@@ -22,6 +22,19 @@ namespace OpenShadows.FileFormats
             return BitConverter.ToUInt16(bytes);
         }
 
+        public static bool IsBoPaCompressed(byte[] data)
+        {
+            if (data.Length < 4)
+            {
+                return false;
+            }
+
+            return data[0] == 0x42
+                && data[1] == 0x6F
+                && data[2] == 0x50
+                && data[3] == 0x61;
+        }
+
         public static byte[] UnpackBoPaCompressedData(byte[] data)
         {
             using var f = new BinaryReader(new MemoryStream(data));

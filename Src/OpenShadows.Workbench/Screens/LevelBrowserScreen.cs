@@ -42,8 +42,6 @@ namespace OpenShadows.Workbench.Screens
 
         public void Update(float dt)
         {
-            // explicitly do nothing
-
             if (alreadyTriedOpeningDefaultAlf == false &&
                 Alf == null && 
                 File.Exists(ReadableAlfPath))
@@ -232,8 +230,8 @@ namespace OpenShadows.Workbench.Screens
 
                 for (int i = 0; i < levelModule.Entries.Count; i++)
                 {
-                    if (ImGui.Selectable((levelModule.Entries.Count + i).ToString(),
-                        i == SelectedLevelEntry, ImGuiSelectableFlags.SpanAllColumns))
+                    int idx = (textureModule.Entries.Count + i);
+                    if (ImGui.Selectable(idx.ToString(), i == SelectedLevelEntry, ImGuiSelectableFlags.SpanAllColumns))
                     {
                         SelectLevelEntry(i);
                     }
@@ -265,6 +263,14 @@ namespace OpenShadows.Workbench.Screens
                 {
                     DrawDscLevelEntry(window);
                 }
+                else if (string.Equals(entry.Name.End(3), "NEI", StringComparison.Ordinal))
+                {
+                    DrawNeiLevelEntry(window);
+                }
+                /*else if (string.Equals(entry.Name.End(3), "TAB", StringComparison.Ordinal))
+                {
+                    DrawTabLevelEntry(window);
+                }*/
                 else if (string.Equals(entry.Name.End(3), "PPD", StringComparison.Ordinal))
                 {
                     DrawPpdLevelEntry(window);
@@ -303,7 +309,12 @@ namespace OpenShadows.Workbench.Screens
                             Path.GetDirectoryName(ReadableAlfPath),
                             "extract");
                     fn = Path.Combine(fn, selectedEntry.Name);
-                    File.WriteAllBytes(fn, selectedEntry.GetContents());
+                    var data = selectedEntry.GetContents();
+                    if (Utils.IsBoPaCompressed(data))
+                    {
+                        data = Utils.UnpackBoPaCompressedData(data);
+                    }
+                    File.WriteAllBytes(fn, data);
                 }
 
                 ImGui.End();
@@ -356,6 +367,69 @@ namespace OpenShadows.Workbench.Screens
 
                 var extracted = DscExtractor.ExtractDsc(selectedEntry.GetContents());
                 ImGui.TextUnformatted(extracted);
+
+                ImGui.End();
+            }
+        }
+
+        private void DrawNeiLevelEntry(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
+
+            if (ImGui.Begin("##nei_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfEntry selectedEntry = levelModule.Entries[SelectedLevelEntry];
+
+                ImGui.Text($"NEI: {selectedEntry.Name}");
+
+                var extracted = NeiExtractor.ExtractNei(selectedEntry.GetContents());
+
+                ImGui.BeginChild("##text_list");
+
+                ImGui.Columns(2);
+                ImGui.Text("idx"); ImGui.NextColumn();
+                ImGui.Text("Text"); ImGui.NextColumn();
+                ImGui.Separator();
+
+                ImGui.SetColumnWidth(0, 50.0f);
+
+                for (int i = 0; i < extracted.Length; i++)
+                {
+                    if (ImGui.Selectable(i.ToString(), false, ImGuiSelectableFlags.SpanAllColumns))
+                    { }
+                    ImGui.NextColumn();
+                    ImGui.TextUnformatted(extracted[i]); ImGui.NextColumn();
+                }
+
+                ImGui.Columns(1);
+
+                ImGui.EndChild();
+
+                ImGui.End();
+            }
+        }
+
+        private void DrawTabLevelEntry(Sdl2Window window)
+        {
+            Vector2 pos = Vector2.One;
+            pos.X = 500 + 350 - 1;
+            pos.Y = 18;
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(window.Width - pos.X, window.Height - 18), ImGuiCond.Always);
+
+            if (ImGui.Begin("##tab_window", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar))
+            {
+                AlfModule levelModule = Alf.Modules[SelectedEntry];
+                AlfEntry selectedEntry = levelModule.Entries[SelectedLevelEntry];
+
+                ImGui.Text($"TAB: {selectedEntry.Name}");
+
+                var extracted = TabExtractor.ExtractTab(selectedEntry.GetContents());                
 
                 ImGui.End();
             }
@@ -498,6 +572,8 @@ namespace OpenShadows.Workbench.Screens
 
         private void OpenAlf()
         {
+            CloseAlf();
+
             Alf = new AlfArchive(ReadableAlfPath);
             SelectedEntry = -1;
             SelectedLevelEntry = -1;
@@ -505,7 +581,11 @@ namespace OpenShadows.Workbench.Screens
 
         private void CloseAlf()
         {
-            Alf = null;
+            if (Alf != null)
+            {
+                Alf.Dispose();
+                Alf = null;
+            }
         }
 
         private void SelectEntry(int id)
