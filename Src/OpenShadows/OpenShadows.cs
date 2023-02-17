@@ -1,10 +1,13 @@
 ﻿using ImGuiNET;
 using Microsoft.FSharp.Collections;
 using OpenShadows.Data.Core;
+using OpenShadows.Data.Game;
+using OpenShadows.Data.Graphic;
 using OpenShadows.Data.GUI;
 using OpenShadows.Data.Input;
 using OpenShadows.Data.Rendering;
 using OpenShadows.Data.Scenes;
+using OpenShadows.FileFormats;
 using OpenShadows.Scenes;
 using Serilog;
 using System;
@@ -37,6 +40,52 @@ namespace OpenShadows
         private TextureSampleCount? newSampleCount;
 
         public bool Init(StartupOptions options)
+        {
+            bool res = SetupGameData(options);
+            if (res == false)
+            {
+                return false;
+            }
+
+            res = InitDevice(options);
+            if (res == false)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool SetupGameData(StartupOptions options)
+        {
+            GameData.PrimaryFolder = options.GameFolder;
+            var validationResult = GameData.ValidatePrimaryFolder();
+            if (validationResult != GameDataFolderValidation.Ok)
+            {
+                switch (validationResult)
+                {
+                    case GameDataFolderValidation.NotSet:
+                        Log.Error($"Failed to location primary game folder. " +
+                            $"No primary game folder was specified through the command line or configuration files.");
+                        break;
+
+                    case GameDataFolderValidation.NotFound:
+                        Log.Error($"Failed to location primary game folder. " +
+                            $"The specified folder '{options.GameFolder}' does not exist.");
+                        break;
+
+                    case GameDataFolderValidation.Invalid:
+                        Log.Error($"Invalid primary game folder. " +
+                            $"The specified folder '{options.GameFolder}' does not contain RIVA.EXE.");
+                        break;
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool InitDevice(StartupOptions options)
         {
             WindowCreateInfo windowCI = new WindowCreateInfo
             {

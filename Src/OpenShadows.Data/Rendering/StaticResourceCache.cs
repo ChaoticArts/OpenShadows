@@ -53,10 +53,7 @@ namespace OpenShadows.Data.Rendering
             return p;
         }
 
-        public static (Shader vs, Shader fs) GetShaders(
-            GraphicsDevice gd,
-            ResourceFactory factory,
-            string name)
+        public static (Shader vs, Shader fs) GetShaders(GraphicsDevice gd, ResourceFactory factory, string name)
         {
             SpecializationConstant[] constants = ShaderHelper.GetSpecializations(gd);
             ShaderSetCacheKey cacheKey = new ShaderSetCacheKey(name, constants);
